@@ -16,6 +16,8 @@ set(PROJECT_SOURCES
     main.cpp
     Map.h
     Map.cpp
+    Prey.h
+    Prey.cpp
 )
 
 qt_add_executable(TP_RTS ${PROJECT_SOURCES} )
