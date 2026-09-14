@@ -10,6 +10,7 @@ class Map: public QWidget
 private:
     const int N = 20;
     const int H0 = 10;
+	const int deltaT = 1;
 
     std::vector<Prey> preys;
 
@@ -23,8 +24,9 @@ public:
 
     void start();
 
-	void DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight);
+	void DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const;
     void DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight);
+	void updatePreys();
 };
 
 #endif
