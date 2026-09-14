@@ -2,6 +2,7 @@
 
 #include <QPainter>
 #include <QThread>
+#include <fstream>
 
 Map::Map(QWidget *parent):
     QWidget(parent)
@@ -35,17 +36,30 @@ void Map::paintEvent(QPaintEvent *event)
 
 	DrawGrid(painter, cellWidth, cellHeight);
 	DrawPreys(painter, cellWidth, cellHeight);
+
+	painter.setFont(QFont("Arial", 12));
+	painter.drawText(0, 12, QString("Proies: " + QString::number(preys.size())));
 }
 
 void Map::start()
 {
     QThread *thread = QThread::create([this]()
     {
+        std::ofstream file("evolution_preys.csv");
+        file << "Temps;Population\n";
+        int currentTime = 0;
+
         while (true)
         {
             QThread::sleep(deltaT);
 
             updatePreys();
+
+            currentTime += deltaT;
+
+            file << currentTime << ";" << preys.size() << "\n";
+            file.flush();
+
 
             QMetaObject::invokeMethod(this, [this]() {
                 update();
