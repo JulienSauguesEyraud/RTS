@@ -18,7 +18,6 @@ Map::~Map()
 
 QSize Map::sizeHint() const
 {
-    // TODO
     return QSize(600, 600);
 }
 
@@ -42,14 +41,23 @@ void Map::start()
 {
     QThread *thread = QThread::create([this]()
     {
-        // TODO
+        while (true)
+        {
+            QThread::sleep(deltaT);
+
+            updatePreys();
+
+            QMetaObject::invokeMethod(this, [this]() {
+                update();
+            });
+        }
     });
 
     thread->start();
 }
 
 // 3.1.1
-void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight)
+void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const
 {
     for (int row = 0; row < N; ++row)
     {
@@ -65,11 +73,19 @@ void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeigh
     }
 }
 
-//3.1.2
+// 3.1.2
 void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
     painter.setBrush(Qt::blue);
     for (const auto& prey : preys) {
         painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
+    }
+}
+
+// 3.1.3.1
+void Map::updatePreys()
+{
+    for (auto& prey : preys) {
+        prey.update(N, N, deltaT, preys);
     }
 }
