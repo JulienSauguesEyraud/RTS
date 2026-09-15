@@ -39,6 +39,7 @@ void Map::paintEvent(QPaintEvent *event)
 
 	painter.setFont(QFont("Arial", 12));
 	painter.drawText(0, 12, QString("Proies: " + QString::number(preys.size())));
+	painter.drawText(0, 36, QString("Jour: " + QString::number(currentTime)));
 }
 
 void Map::start()
@@ -47,19 +48,18 @@ void Map::start()
     {
         std::ofstream file("evolution_preys.csv");
         file << "Temps;Population\n";
-        int currentTime = 0;
 
         while (true)
         {
             QThread::sleep(deltaT);
 
             updatePreys();
+            reproducePreys();
 
             currentTime += deltaT;
 
             file << currentTime << ";" << preys.size() << "\n";
             file.flush();
-
 
             QMetaObject::invokeMethod(this, [this]() {
                 update();
@@ -70,7 +70,6 @@ void Map::start()
     thread->start();
 }
 
-// 3.1.1
 void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const
 {
     for (int row = 0; row < N; ++row)
@@ -87,19 +86,59 @@ void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeigh
     }
 }
 
-// 3.1.2
 void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
-    painter.setBrush(Qt::blue);
     for (const auto& prey : preys) {
+        if (prey.IsChidren())
+        {
+            painter.setBrush(Qt::cyan);
+        }
+        else if (!prey.canReproduce)
+        {
+            painter.setBrush(Qt::darkCyan);
+        }
+        else
+        {
+			painter.setBrush(Qt::blue);
+        }
+
         painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
     }
 }
 
-// 3.1.3.1
 void Map::updatePreys()
 {
     for (auto& prey : preys) {
-        prey.update(N, N, deltaT, preys);
+        prey.update(N, N, deltaT, currentTime);
     }
+}
+
+void Map::reproducePreys()
+{
+	std::vector<Prey> newPreys;
+	for (int i = 0; i < preys.size(); ++i)
+	{
+		if (!preys[i].canReproduce) continue;
+
+		for (int j = i + 1; j < preys.size(); ++j)
+		{
+            if (preys[j].canReproduce)
+			{
+                if (preys[i].getX() == preys[j].getX() && preys[i].getY() == preys[j].getY())
+				{
+					preys[i].reproduce(newPreys, N, N);
+					preys[i].canReproduce = false;
+					preys[j].canReproduce = false;
+					preys[i].setLastReproduction(currentTime);
+					preys[j].setLastReproduction(currentTime);
+                    break;
+				}
+			}
+		}
+	}
+
+	for (const auto& newPrey : newPreys)
+	{
+		preys.push_back(newPrey);
+	}
 }

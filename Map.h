@@ -9,10 +9,16 @@ class Map: public QWidget
 {
 private:
     const int N = 20;
-    const int H0 = 10;
+    const int H0 = 50;
 	const int deltaT = 1;
+    int currentTime = 0;
 
     std::vector<Prey> preys;
+
+    void DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const;
+    void DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight);
+    void updatePreys();
+	void reproducePreys();
 
 public:
     Map(QWidget *parent = nullptr);
@@ -24,9 +30,6 @@ public:
 
     void start();
 
-	void DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const;
-    void DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight);
-	void updatePreys();
 };
 
 #endif

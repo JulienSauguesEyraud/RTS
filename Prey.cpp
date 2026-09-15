@@ -1,9 +1,28 @@
 #include "Prey.h"
 
-Prey::Prey(int gridWidth, int gridHeight)
+Prey::Prey(int gridWidth, int gridHeight, bool initialPrey, int initialX, int initialY)
 {
-	x = QRandomGenerator::global()->bounded(gridWidth);
-	y = QRandomGenerator::global()->bounded(gridHeight);
+	if (initialX >= 0 && initialY >= 0)
+	{
+		x = initialX;
+		y = initialY;
+	}
+	else
+	{
+		x = QRandomGenerator::global()->bounded(gridWidth);
+		y = QRandomGenerator::global()->bounded(gridHeight);
+	}
+	if (initialPrey)
+	{
+		age = minimumAgeForReproduction;
+		canReproduce = true;
+	}
+	else
+	{
+		age = 0;
+		canReproduce = false;
+	}
+	lastReproduction = daysToReproduce;
 }
 
 int Prey::getX() const
@@ -16,19 +35,19 @@ int Prey::getY() const
 	return y;
 }
 
-void Prey::update(int gridWidth, int gridHeight, int deltaT, std::vector<Prey>& preys)
+void Prey::update(int gridWidth, int gridHeight, int deltaT, int currentTime)
 {
-	move(gridWidth, gridHeight);
-	grow(deltaT);
-	reproduce(preys, gridWidth, gridHeight);
+	move(gridWidth, gridHeight, deltaT);
+	grow(deltaT, currentTime);
 }
 
-// 3.1.3.1
-void Prey::move(int gridWidth, int gridHeight)
+void Prey::move(int gridWidth, int gridHeight, int deltaT)
 {
-	int direction = QRandomGenerator::global()->bounded(4);
-	switch (direction)
+	for (int i = 0; i < deltaT; ++i)
 	{
+		int direction = QRandomGenerator::global()->bounded(4);
+		switch (direction)
+		{
 		case 0: // Haut
 			y = (y + 1) % gridHeight;
 			break;
@@ -41,20 +60,40 @@ void Prey::move(int gridWidth, int gridHeight)
 		case 3: // Gauche
 			x = (x - 1 + gridWidth) % gridWidth;
 			break;
+		}
 	}
 }
 
-// 3.1.3.2
-void Prey::grow(int deltaT)
+void Prey::grow(int deltaT, int currentTime)
 {
+	if (!canReproduce)
+	{
+		if (age >= minimumAgeForReproduction)
+		{
+			if (currentTime - lastReproduction >= daysToReproduce)
+			{
+				canReproduce = true;
+			}
+		}
+	}
 	age += deltaT;
 }
 
-// 3.1.3.3
 void Prey::reproduce(std::vector<Prey>& preys, int gridWidth, int gridHeight) const
 {
-	if (QRandomGenerator::global()->bounded(1.0) < pReproduction)
-	{
-		preys.push_back(Prey(gridWidth, gridHeight));
-	}
+	// L'enfant apparait sur la même case que les parents
+	preys.emplace_back(gridWidth, gridHeight, false, x, y);
+
+	// L'enfant apparait sur une case aléatoire
+	// preys.emplace_back(gridWidth, gridHeight, false);
+}
+
+bool Prey::IsChidren() const
+{
+	return age < minimumAgeForReproduction;
+}
+
+void Prey::setLastReproduction(int currentTime)
+{
+	lastReproduction = currentTime;
 }
