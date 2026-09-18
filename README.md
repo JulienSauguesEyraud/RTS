@@ -1,6 +1,3 @@
 Julien Saugues--Eyraud et Mathis Gilgenkrantz
 
-
-Refaire un build comme ca : 
-cmake -S . -B out/build -DCMAKE_PREFIX_PATH="CHEMIN_VERS_QT"
-cmake --build out/build
+Vérifier qu'il y a bien cette variable d'environnement : C:\Qt\6.10.0\msvc2022_64\bin

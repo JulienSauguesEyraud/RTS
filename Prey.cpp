@@ -82,10 +82,10 @@ void Prey::grow(int deltaT, int currentTime)
 void Prey::reproduce(std::vector<Prey>& preys, int gridWidth, int gridHeight) const
 {
 	// L'enfant apparait sur la même case que les parents
-	preys.emplace_back(gridWidth, gridHeight, false, x, y);
+	// preys.emplace_back(gridWidth, gridHeight, false, x, y);
 
 	// L'enfant apparait sur une case aléatoire
-	// preys.emplace_back(gridWidth, gridHeight, false);
+	preys.emplace_back(gridWidth, gridHeight, false);
 }
 
 bool Prey::IsChidren() const
