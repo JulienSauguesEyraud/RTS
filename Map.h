@@ -5,21 +5,27 @@
 #include <vector>
 #include <memory>
 #include "Prey.h"
+#include "Predator.h"
 
 class Map: public QWidget
 {
 private:
     const int N = 20;
-    const int H0 = 5000;
+    const int H0 = 50;
 	const int deltaT = 1;
     int currentTime = 0;
+    float pDeathPredator = 0.1f;
 
-    std::vector<std::shared_ptr<Prey>> preys;
+    //std::vector<Prey> preys;
+    std::vector<Predator> predators;
 
     void DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const;
-    void DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight);
-    void updatePreys();
-	void reproducePreys();
+    //void DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight);
+    void DrawPredators(QPainter& painter, const int& cellWidth, const int& cellHeight);
+    //void updatePreys();
+	void updatePredators();
+	//void reproducePreys();
+	void reproducePredators();
 
 public:
     Map(QWidget *parent = nullptr);

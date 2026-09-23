@@ -13,7 +13,7 @@ class Prey : public Creature
 {
 public:
 	using Creature::Creature;
-	void reproduce(std::vector<std::shared_ptr<Creature>>& newCreatures, int gridWidth, int gridHeight) const override;
+	void reproduce(std::vector<Prey>& newPreys, int gridWidth, int gridHeight) const;
 };
 
 #endif

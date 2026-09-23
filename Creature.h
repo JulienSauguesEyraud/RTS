@@ -27,8 +27,7 @@ public:
 	virtual ~Creature();
 	int getX() const;
 	int getY() const;
-	void update(int gridWidth, int gridHeight, int deltaT, int currentTime);
-	virtual void reproduce(std::vector<std::shared_ptr<Creature>>& newCreatures, int gridWidth, int gridHeight) const = 0;
+	virtual void update(int gridWidth, int gridHeight, int deltaT, int currentTime);
 	bool IsChidren() const;
 	void setLastReproduction(int currentTime);
 };

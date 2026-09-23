@@ -9,7 +9,8 @@ Map::Map(QWidget *parent):
 {
     for (int i = 0; i < H0; ++i)
     {
-        preys.push_back(std::make_shared<Prey>(N, N));
+        //preys.emplace_back(N, N);
+		predators.emplace_back(N, N);
     }
 }
 
@@ -35,11 +36,13 @@ void Map::paintEvent(QPaintEvent *event)
     const int cellHeight = height() / N;
 
 	DrawGrid(painter, cellWidth, cellHeight);
-	DrawPreys(painter, cellWidth, cellHeight);
+	//DrawPreys(painter, cellWidth, cellHeight);
+	DrawPredators(painter, cellWidth, cellHeight);
 
 	painter.setFont(QFont("Arial", 12));
-	painter.drawText(0, 12, QString("Proies: " + QString::number(preys.size())));
-	painter.drawText(0, 36, QString("Jour: " + QString::number(currentTime)));
+	//painter.drawText(0, 12, QString("Proies: " + QString::number(preys.size())));
+    painter.drawText(0, 36, QString("Prédateurs: " + QString::number(predators.size())));
+	painter.drawText(0, 54, QString("Jour: " + QString::number(currentTime)));
 }
 
 void Map::start()
@@ -47,18 +50,20 @@ void Map::start()
     QThread *thread = QThread::create([this]()
     {
         std::ofstream file("evolution_preys.csv");
-        file << "Temps;Population\n";
+        file << "Temps;Proies;Prédateurs\n";
 
         while (true)
         {
             QThread::sleep(deltaT);
 
-            updatePreys();
-            reproducePreys();
+            //updatePreys();
+			updatePredators();
+            //reproducePreys();
+			//reproducePredators();
 
             currentTime += deltaT;
 
-            file << currentTime << ";" << preys.size() << "\n";
+            //file << currentTime << ";" << preys.size() << ";" << predators.size() << "\n";
             file.flush();
 
             QMetaObject::invokeMethod(this, [this]() {
@@ -86,59 +91,123 @@ void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeigh
     }
 }
 
-void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight)
+//void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight)
+//{
+//    for (const auto& prey : preys) {
+//        if (prey.IsChidren())
+//        {
+//            painter.setBrush(Qt::cyan);
+//        }
+//        else if (!prey.canReproduce)
+//        {
+//            painter.setBrush(Qt::darkCyan);
+//        }
+//        else
+//        {
+//			painter.setBrush(Qt::blue);
+//        }
+//
+//        painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
+//    }
+//}
+
+void Map::DrawPredators(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
-    for (const auto& prey : preys) {
-        if (prey->IsChidren())
+    for (const auto& predator : predators) {
+        if (predator.IsChidren())
         {
-            painter.setBrush(Qt::cyan);
+            painter.setBrush(Qt::yellow);
         }
-        else if (!prey->canReproduce)
+        else if (!predator.canReproduce)
         {
-            painter.setBrush(Qt::darkCyan);
+            painter.setBrush(Qt::darkYellow);
         }
         else
         {
-			painter.setBrush(Qt::blue);
+            painter.setBrush(Qt::red);
         }
 
-        painter.drawEllipse(prey->getX() * cellWidth, prey->getY() * cellHeight, cellWidth, cellHeight);
+        painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
     }
 }
 
-void Map::updatePreys()
+//void Map::updatePreys()
+//{
+//    for (auto& prey : preys) {
+//        prey.update(N, N, deltaT, currentTime);
+//    }
+//}
+
+void Map::updatePredators()
 {
-    for (auto& prey : preys) {
-        prey->update(N, N, deltaT, currentTime);
+    for (auto& predator : predators) {
+        predator.update(N, N, deltaT, currentTime);
     }
+
+    predators.erase(
+        std::remove_if(predators.begin(), predators.end(), [this](const Predator&) {
+            return QRandomGenerator::global()->generateDouble() < pDeathPredator;
+            }),
+        predators.end()
+    );
 }
 
-void Map::reproducePreys()
-{
-	std::vector<std::shared_ptr<Creature>> newPreys;
-	for (int i = 0; i < preys.size(); ++i)
-	{
-		if (!preys[i]->canReproduce) continue;
+//void Map::reproducePreys()
+//{
+//	std::vector<Prey> newPreys;
+//	for (int i = 0; i < preys.size(); ++i)
+//	{
+//		if (!preys[i].canReproduce) continue;
+//
+//		for (int j = i + 1; j < preys.size(); ++j)
+//		{
+//            if (preys[j].canReproduce)
+//			{
+//                if (preys[i].getX() == preys[j].getX() && preys[i].getY() == preys[j].getY())
+//				{
+//					preys[i].reproduce(newPreys, N, N);
+//					preys[i].canReproduce = false;
+//					preys[j].canReproduce = false;
+//					preys[i].setLastReproduction(currentTime);
+//					preys[j].setLastReproduction(currentTime);
+//                    break;
+//				}
+//			}
+//		}
+//	}
+//
+//	for (const auto& newPrey : newPreys)
+//	{
+//		preys.push_back(newPrey);
+//	}
+//}
 
-		for (int j = i + 1; j < preys.size(); ++j)
-		{
-            if (preys[j]->canReproduce)
-			{
-                if (preys[i]->getX() == preys[j]->getX() && preys[i]->getY() == preys[j]->getY())
-				{
-					preys[i]->reproduce(newPreys, N, N);
-					preys[i]->canReproduce = false;
-					preys[j]->canReproduce = false;
-					preys[i]->setLastReproduction(currentTime);
-					preys[j]->setLastReproduction(currentTime);
+void Map::reproducePredators()
+{
+    std::vector<Predator> newPredators;
+    for (int i = 0; i < predators.size(); ++i)
+    {
+        if (!predators[i].canReproduce) continue;
+
+        for (int j = i + 1; j < predators.size(); ++j)
+        {
+            if (predators[j].canReproduce)
+            {
+                if (predators[i].getX() == predators[j].getX() && predators[i].getY() == predators[j].getY())
+                {
+                    predators[i].reproduce(newPredators, N, N);
+                    predators[i].canReproduce = false;
+                    predators[j].canReproduce = false;
+                    predators[i].setLastReproduction(currentTime);
+                    predators[j].setLastReproduction(currentTime);
                     break;
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 
-	for (const auto& newPrey : newPreys)
-	{
-        preys.push_back(std::static_pointer_cast<Prey>(newPrey));
-	}
+    for (const auto& newPredator : newPredators)
+    {
+        predators.push_back(newPredator);
+    }
 }
