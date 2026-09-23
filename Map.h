@@ -14,7 +14,6 @@ private:
     const int H0 = 50;
 	const int deltaT = 1;
     int currentTime = 0;
-    float pDeathPredator = 0.1f;
 
     //std::vector<Prey> preys;
     std::vector<Predator> predators;
@@ -26,6 +25,7 @@ private:
 	void updatePredators();
 	//void reproducePreys();
 	void reproducePredators();
+    void FightPredators();
 
 public:
     Map(QWidget *parent = nullptr);

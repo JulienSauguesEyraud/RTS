@@ -49,8 +49,8 @@ void Map::start()
 {
     QThread *thread = QThread::create([this]()
     {
-        std::ofstream file("evolution_preys.csv");
-        file << "Temps;Proies;Prédateurs\n";
+        std::ofstream file("evolution_poppulations.csv");
+        file << "Temps;Proies;Predateurs\n";
 
         while (true)
         {
@@ -60,10 +60,11 @@ void Map::start()
 			updatePredators();
             //reproducePreys();
 			//reproducePredators();
+			FightPredators();
 
             currentTime += deltaT;
 
-            //file << currentTime << ";" << preys.size() << ";" << predators.size() << "\n";
+            file << currentTime << ";" << /*preys.size() << */ ";" << predators.size() << "\n";
             file.flush();
 
             QMetaObject::invokeMethod(this, [this]() {
@@ -143,13 +144,6 @@ void Map::updatePredators()
     for (auto& predator : predators) {
         predator.update(N, N, deltaT, currentTime);
     }
-
-    predators.erase(
-        std::remove_if(predators.begin(), predators.end(), [this](const Predator&) {
-            return QRandomGenerator::global()->generateDouble() < pDeathPredator;
-            }),
-        predators.end()
-    );
 }
 
 //void Map::reproducePreys()
@@ -210,4 +204,42 @@ void Map::reproducePredators()
     {
         predators.push_back(newPredator);
     }
+}
+
+void Map::FightPredators()
+{
+    std::vector<bool> dead(predators.size(), false);
+
+    for (int i = 0; i < predators.size(); ++i)
+    {
+        if (dead[i]) continue;
+
+        for (int j = i + 1; j < predators.size(); ++j)
+        {
+            if (dead[j]) continue;
+
+            if (predators[i].getX() == predators[j].getX() && predators[i].getY() == predators[j].getY())
+            {
+                if (QRandomGenerator::global()->bounded(2) == 0)
+                {
+                    dead[i] = true;
+                    break; 
+                }
+                else
+                {
+                    dead[j] = true; 
+                }
+            }
+        }
+    }
+
+    std::vector<Predator> survivors;
+    for (size_t i = 0; i < predators.size(); ++i)
+    {
+        if (!dead[i])
+        {
+            survivors.push_back(predators[i]);
+        }
+    }
+    predators = std::move(survivors);
 }
