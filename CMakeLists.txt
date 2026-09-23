@@ -16,6 +16,8 @@ set(PROJECT_SOURCES
     main.cpp
     Map.h
     Map.cpp
+    Creature.h
+    Creature.cpp
     Prey.h
     Prey.cpp
 )

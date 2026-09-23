@@ -9,7 +9,7 @@ Map::Map(QWidget *parent):
 {
     for (int i = 0; i < H0; ++i)
     {
-        preys.emplace_back(N, N);
+        preys.push_back(std::make_shared<Prey>(N, N));
     }
 }
 
@@ -89,11 +89,11 @@ void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeigh
 void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
     for (const auto& prey : preys) {
-        if (prey.IsChidren())
+        if (prey->IsChidren())
         {
             painter.setBrush(Qt::cyan);
         }
-        else if (!prey.canReproduce)
+        else if (!prey->canReproduce)
         {
             painter.setBrush(Qt::darkCyan);
         }
@@ -102,35 +102,35 @@ void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeig
 			painter.setBrush(Qt::blue);
         }
 
-        painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
+        painter.drawEllipse(prey->getX() * cellWidth, prey->getY() * cellHeight, cellWidth, cellHeight);
     }
 }
 
 void Map::updatePreys()
 {
     for (auto& prey : preys) {
-        prey.update(N, N, deltaT, currentTime);
+        prey->update(N, N, deltaT, currentTime);
     }
 }
 
 void Map::reproducePreys()
 {
-	std::vector<Prey> newPreys;
+	std::vector<std::shared_ptr<Creature>> newPreys;
 	for (int i = 0; i < preys.size(); ++i)
 	{
-		if (!preys[i].canReproduce) continue;
+		if (!preys[i]->canReproduce) continue;
 
 		for (int j = i + 1; j < preys.size(); ++j)
 		{
-            if (preys[j].canReproduce)
+            if (preys[j]->canReproduce)
 			{
-                if (preys[i].getX() == preys[j].getX() && preys[i].getY() == preys[j].getY())
+                if (preys[i]->getX() == preys[j]->getX() && preys[i]->getY() == preys[j]->getY())
 				{
-					preys[i].reproduce(newPreys, N, N);
-					preys[i].canReproduce = false;
-					preys[j].canReproduce = false;
-					preys[i].setLastReproduction(currentTime);
-					preys[j].setLastReproduction(currentTime);
+					preys[i]->reproduce(newPreys, N, N);
+					preys[i]->canReproduce = false;
+					preys[j]->canReproduce = false;
+					preys[i]->setLastReproduction(currentTime);
+					preys[j]->setLastReproduction(currentTime);
                     break;
 				}
 			}
@@ -139,6 +139,6 @@ void Map::reproducePreys()
 
 	for (const auto& newPrey : newPreys)
 	{
-		preys.push_back(newPrey);
+        preys.push_back(std::static_pointer_cast<Prey>(newPrey));
 	}
 }
