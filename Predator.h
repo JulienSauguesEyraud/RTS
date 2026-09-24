@@ -11,11 +11,13 @@
 
 class Predator : public Creature
 {
-private:
-	float p = 0.1f;
-
+protected:
+	int satiete = 10;
+	void grow(int deltaT, int currentTime) override;
 public:
 	using Creature::Creature;
+	bool isHungry() const;
+	void resetSatiete();
 	void reproduce(std::vector<Predator>& newPredators, int gridWidth, int gridHeight) const;
 };
 

@@ -18,7 +18,7 @@ protected:
 	int lastReproduction;
 
 	void move(int gridWidth, int gridHeight, int deltaT);
-	void grow(int deltaT, int currentTime);
+	virtual void grow(int deltaT, int currentTime);
 
 public:
 	bool canReproduce;

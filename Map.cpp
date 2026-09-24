@@ -9,7 +9,7 @@ Map::Map(QWidget *parent):
 {
     for (int i = 0; i < H0; ++i)
     {
-        //preys.emplace_back(N, N);
+        preys.emplace_back(N, N);
 		predators.emplace_back(N, N);
     }
 }
@@ -36,11 +36,11 @@ void Map::paintEvent(QPaintEvent *event)
     const int cellHeight = height() / N;
 
 	DrawGrid(painter, cellWidth, cellHeight);
-	//DrawPreys(painter, cellWidth, cellHeight);
+	DrawPreys(painter, cellWidth, cellHeight);
 	DrawPredators(painter, cellWidth, cellHeight);
 
 	painter.setFont(QFont("Arial", 12));
-	//painter.drawText(0, 12, QString("Proies: " + QString::number(preys.size())));
+	painter.drawText(0, 12, QString("Proies: " + QString::number(preys.size())));
     painter.drawText(0, 36, QString("Prédateurs: " + QString::number(predators.size())));
 	painter.drawText(0, 54, QString("Jour: " + QString::number(currentTime)));
 }
@@ -56,15 +56,16 @@ void Map::start()
         {
             QThread::sleep(deltaT);
 
-            //updatePreys();
+            updatePreys();
 			updatePredators();
-            //reproducePreys();
-			//reproducePredators();
-			FightPredators();
+            FightPredators();
+            PredatorsEatPreys();
+            reproducePreys();
+			// reproducePredators();
 
             currentTime += deltaT;
 
-            file << currentTime << ";" << /*preys.size() << */ ";" << predators.size() << "\n";
+            file << currentTime << ";" << preys.size() <<  ";" << predators.size() << "\n";
             file.flush();
 
             QMetaObject::invokeMethod(this, [this]() {
@@ -92,25 +93,25 @@ void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeigh
     }
 }
 
-//void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight)
-//{
-//    for (const auto& prey : preys) {
-//        if (prey.IsChidren())
-//        {
-//            painter.setBrush(Qt::cyan);
-//        }
-//        else if (!prey.canReproduce)
-//        {
-//            painter.setBrush(Qt::darkCyan);
-//        }
-//        else
-//        {
-//			painter.setBrush(Qt::blue);
-//        }
-//
-//        painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
-//    }
-//}
+void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight)
+{
+    for (const auto& prey : preys) {
+        if (prey.IsChidren())
+        {
+            painter.setBrush(Qt::cyan);
+        }
+        else if (!prey.canReproduce)
+        {
+            painter.setBrush(Qt::darkCyan);
+        }
+        else
+        {
+			painter.setBrush(Qt::blue);
+        }
+
+        painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
+    }
+}
 
 void Map::DrawPredators(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
@@ -123,6 +124,10 @@ void Map::DrawPredators(QPainter& painter, const int& cellWidth, const int& cell
         {
             painter.setBrush(Qt::darkYellow);
         }
+        else if (predator.isHungry())
+        {
+            painter.setBrush(Qt::darkRed);
+        }
         else
         {
             painter.setBrush(Qt::red);
@@ -132,12 +137,12 @@ void Map::DrawPredators(QPainter& painter, const int& cellWidth, const int& cell
     }
 }
 
-//void Map::updatePreys()
-//{
-//    for (auto& prey : preys) {
-//        prey.update(N, N, deltaT, currentTime);
-//    }
-//}
+void Map::updatePreys()
+{
+    for (auto& prey : preys) {
+        prey.update(N, N, deltaT, currentTime);
+    }
+}
 
 void Map::updatePredators()
 {
@@ -146,65 +151,65 @@ void Map::updatePredators()
     }
 }
 
-//void Map::reproducePreys()
-//{
-//	std::vector<Prey> newPreys;
-//	for (int i = 0; i < preys.size(); ++i)
-//	{
-//		if (!preys[i].canReproduce) continue;
-//
-//		for (int j = i + 1; j < preys.size(); ++j)
-//		{
-//            if (preys[j].canReproduce)
-//			{
-//                if (preys[i].getX() == preys[j].getX() && preys[i].getY() == preys[j].getY())
-//				{
-//					preys[i].reproduce(newPreys, N, N);
-//					preys[i].canReproduce = false;
-//					preys[j].canReproduce = false;
-//					preys[i].setLastReproduction(currentTime);
-//					preys[j].setLastReproduction(currentTime);
-//                    break;
-//				}
-//			}
-//		}
-//	}
-//
-//	for (const auto& newPrey : newPreys)
-//	{
-//		preys.push_back(newPrey);
-//	}
-//}
-
-void Map::reproducePredators()
+void Map::reproducePreys()
 {
-    std::vector<Predator> newPredators;
-    for (int i = 0; i < predators.size(); ++i)
-    {
-        if (!predators[i].canReproduce) continue;
+	std::vector<Prey> newPreys;
+	for (int i = 0; i < preys.size(); ++i)
+	{
+		if (!preys[i].canReproduce) continue;
 
-        for (int j = i + 1; j < predators.size(); ++j)
-        {
-            if (predators[j].canReproduce)
-            {
-                if (predators[i].getX() == predators[j].getX() && predators[i].getY() == predators[j].getY())
-                {
-                    predators[i].reproduce(newPredators, N, N);
-                    predators[i].canReproduce = false;
-                    predators[j].canReproduce = false;
-                    predators[i].setLastReproduction(currentTime);
-                    predators[j].setLastReproduction(currentTime);
+		for (int j = i + 1; j < preys.size(); ++j)
+		{
+            if (preys[j].canReproduce)
+			{
+                if (preys[i].getX() == preys[j].getX() && preys[i].getY() == preys[j].getY())
+				{
+					preys[i].reproduce(newPreys, N, N);
+					preys[i].canReproduce = false;
+					preys[j].canReproduce = false;
+					preys[i].setLastReproduction(currentTime);
+					preys[j].setLastReproduction(currentTime);
                     break;
-                }
-            }
-        }
-    }
+				}
+			}
+		}
+	}
 
-    for (const auto& newPredator : newPredators)
-    {
-        predators.push_back(newPredator);
-    }
+	for (const auto& newPrey : newPreys)
+	{
+		preys.push_back(newPrey);
+	}
 }
+
+//void Map::reproducePredators()
+//{
+//    std::vector<Predator> newPredators;
+//    for (int i = 0; i < predators.size(); ++i)
+//    {
+//        if (!predators[i].canReproduce) continue;
+//
+//        for (int j = i + 1; j < predators.size(); ++j)
+//        {
+//            if (predators[j].canReproduce)
+//            {
+//                if (predators[i].getX() == predators[j].getX() && predators[i].getY() == predators[j].getY())
+//                {
+//                    predators[i].reproduce(newPredators, N, N);
+//                    predators[i].canReproduce = false;
+//                    predators[j].canReproduce = false;
+//                    predators[i].setLastReproduction(currentTime);
+//                    predators[j].setLastReproduction(currentTime);
+//                    break;
+//                }
+//            }
+//        }
+//    }
+//
+//    for (const auto& newPredator : newPredators)
+//    {
+//        predators.push_back(newPredator);
+//    }
+//}
 
 void Map::FightPredators()
 {
@@ -242,4 +247,37 @@ void Map::FightPredators()
         }
     }
     predators = std::move(survivors);
+}
+
+void Map::PredatorsEatPreys()
+{
+    std::vector<bool> dead(preys.size(), false);
+
+    for (int i = 0; i < preys.size(); ++i)
+    {
+        if (dead[i]) continue;
+
+        for (int j = 0; j < predators.size(); ++j)
+        {
+            if (predators[j].isHungry())
+            {
+                if (preys[i].getX() == predators[j].getX() && preys[i].getY() == predators[j].getY())
+                {
+                    dead[i] = true;
+                    predators[j].resetSatiete();
+                    break;
+                }
+            }
+        }
+    }
+
+    std::vector<Prey> survivors;
+    for (size_t i = 0; i < preys.size(); ++i)
+    {
+        if (!dead[i])
+        {
+            survivors.push_back(preys[i]);
+        }
+    }
+    preys = std::move(survivors);
 }

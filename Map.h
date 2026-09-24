@@ -15,17 +15,18 @@ private:
 	const int deltaT = 1;
     int currentTime = 0;
 
-    //std::vector<Prey> preys;
+    std::vector<Prey> preys;
     std::vector<Predator> predators;
 
     void DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const;
-    //void DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight);
+    void DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight);
     void DrawPredators(QPainter& painter, const int& cellWidth, const int& cellHeight);
-    //void updatePreys();
+    void updatePreys();
 	void updatePredators();
-	//void reproducePreys();
-	void reproducePredators();
+	void reproducePreys();
+	// void reproducePredators();
     void FightPredators();
+    void PredatorsEatPreys();
 
 public:
     Map(QWidget *parent = nullptr);
