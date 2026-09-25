@@ -15,6 +15,11 @@ bool Predator::isHungry() const
 	return satiete <= 5;
 }
 
+bool Predator::isVeryHungry() const
+{
+	return satiete <= 2;
+}
+
 void Predator::resetSatiete()
 {
 	satiete = 10;

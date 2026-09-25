@@ -18,6 +18,7 @@ protected:
 public:
 	using Creature::Creature;
 	bool isHungry() const;
+	bool isVeryHungry() const;
 	void resetSatiete();
 	void reproduce(std::vector<Predator>& newPredators, int gridWidth, int gridHeight) const;
 	bool isDeadStatus() const;

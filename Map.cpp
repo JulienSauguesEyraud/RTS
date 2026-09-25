@@ -204,24 +204,33 @@ void Map::CheckFightOrReproducePredators()
     {
         if (dead[i]) continue;
 		if (reproduced[i]) continue;
+		if (predators[i].IsChidren()) continue;
 
         for (int j = i + 1; j < predators.size(); ++j)
         {
+            if (dead[j]) continue;
+            if (reproduced[j]) continue;
+            if (predators[j].IsChidren()) continue;
+
             if (predators[i].getX() == predators[j].getX() && predators[i].getY() == predators[j].getY())
             {
-				if (dead[j]) continue;
-				if (reproduced[j]) continue;
-
                 if (predators[j].canReproduce && predators[i].canReproduce)
                 {
-                    if (QRandomGenerator::global()->bounded(2) == 0)
+                    if (!predators[i].isHungry() && !predators[j].isHungry())
                     {
-						reproducePredators(i, j, newPredators, reproduced);
-                        break;
+                        if (QRandomGenerator::global()->bounded(2) == 0)
+                        {
+                            reproducePredators(i, j, newPredators, reproduced);
+                            break;
+                        }
+                        else
+                        {
+                            FightPredators(i, j, dead);
+                        }
                     }
-                    else 
+                    else
                     {
-						FightPredators(i, j, dead);
+                        FightPredators(i, j, dead);
                     }
                 }
                 else
@@ -263,13 +272,118 @@ void Map::reproducePredators(int i, int j, std::vector<Predator>& newPredators, 
 
 void Map::FightPredators(int i, int j, std::vector<bool>& dead)
 {
-    if (QRandomGenerator::global()->bounded(2) == 0)
+    if (!predators[i].isHungry() && !predators[j].isHungry())
     {
-        dead[i] = true;
+        if (QRandomGenerator::global()->bounded(2) == 0)
+        {
+            dead[i] = true;
+            predators[j].resetSatiete();
+        }
+        else
+        {
+            dead[j] = true;
+            predators[i].resetSatiete();
+        }
     }
-    else
+    else if (predators[i].isHungry() && !predators[j].isHungry())
     {
-        dead[j] = true;
+		if (predators[i].isVeryHungry())
+		{
+			if (QRandomGenerator::global()->bounded(3) == 0) // prédateur très affamé a 1 chance sur 3 de tuer le prédateur pas affamé
+            {
+                dead[j] = true;
+                predators[i].resetSatiete();
+            }
+            else
+            {
+                dead[i] = true;
+                predators[j].resetSatiete();
+            }
+		}
+		else
+		{
+            if (QRandomGenerator::global()->bounded(3) == 0) // prédateur un peu affamé a 2 chance sur 3 de tuer le prédateur pas affamé
+            {
+                dead[i] = true;
+                predators[j].resetSatiete();
+            }
+            else
+            {
+                dead[j] = true;
+                predators[i].resetSatiete();
+            }
+		}
+    }
+    else if (!predators[i].isHungry() && predators[j].isHungry())
+    {
+        if (predators[j].isVeryHungry())
+        {
+            if (QRandomGenerator::global()->bounded(3) == 0) // prédateur très affamé a 1 chance sur 3 de tuer le prédateur pas affamé
+            {
+                dead[i] = true;
+                predators[j].resetSatiete();
+            }
+            else
+            {
+                dead[j] = true;
+                predators[i].resetSatiete();
+            }
+        }
+        else
+        {
+            if (QRandomGenerator::global()->bounded(3) == 0) // prédateur un peu affamé a 2 chance sur 3 de tuer le prédateur pas affamé
+            {
+                dead[j] = true;
+                predators[i].resetSatiete();
+            }
+            else
+            {
+                dead[i] = true;
+                predators[j].resetSatiete();
+            }
+        }
+    }
+    else if (predators[i].isHungry() && predators[j].isHungry())
+    {
+        if (!predators[i].isVeryHungry() && predators[j].isVeryHungry())
+        {
+            if (QRandomGenerator::global()->bounded(4) == 0) // prédateur très affamé a 1 chance sur 4 de tuer le prédateur un peu affamé
+            {
+                dead[i] = true;
+                predators[j].resetSatiete();
+            }
+            else
+            {
+                dead[j] = true;
+                predators[i].resetSatiete();
+            }
+        }
+        else if (predators[i].isVeryHungry() && !predators[j].isVeryHungry())
+        {
+            if (QRandomGenerator::global()->bounded(4) == 0) // prédateur un peu affamé a 3 chance sur 4 de tuer le prédateur très affamé
+            {
+                dead[j] = true;
+                predators[i].resetSatiete();
+            }
+            else
+            {
+                dead[i] = true;
+                predators[j].resetSatiete();
+            }
+        }
+        else
+        {
+			if (QRandomGenerator::global()->bounded(2) == 0) // les 2 prédateurs très affamés ont 50% de chance de tuer l'autre
+            {
+                dead[i] = true;
+                predators[j].resetSatiete();
+            }
+            else
+            {
+                dead[j] = true;
+                predators[i].resetSatiete();
+            }
+        }
     }
 }
 
