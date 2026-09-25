@@ -24,9 +24,11 @@ private:
     void updatePreys();
 	void updatePredators();
 	void reproducePreys();
-	// void reproducePredators();
-    void FightPredators();
+	void CheckFightOrReproducePredators();
+	void reproducePredators(int i, int j, std::vector<Predator>& newPredators, std::vector<bool>& reproduced);
+    void FightPredators(int i, int j, std::vector<bool>& dead);
     void PredatorsEatPreys();
+	void RemoveDeadPredators();
 
 public:
     Map(QWidget *parent = nullptr);

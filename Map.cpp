@@ -54,14 +54,14 @@ void Map::start()
 
         while (true)
         {
-            QThread::sleep(deltaT);
+            QThread::sleep(1);
 
             updatePreys();
 			updatePredators();
-            FightPredators();
             PredatorsEatPreys();
+            RemoveDeadPredators();
+            CheckFightOrReproducePredators();
             reproducePreys();
-			// reproducePredators();
 
             currentTime += deltaT;
 
@@ -98,42 +98,55 @@ void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeig
     for (const auto& prey : preys) {
         if (prey.IsChidren())
         {
-            painter.setBrush(Qt::cyan);
+            painter.setBrush(Qt::blue);
+            painter.drawEllipse(prey.getX() * cellWidth + cellWidth / 4, prey.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
         }
         else if (!prey.canReproduce)
         {
-            painter.setBrush(Qt::darkCyan);
+            painter.setBrush(Qt::darkBlue);
+            painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
         }
         else
         {
 			painter.setBrush(Qt::blue);
+            painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
         }
-
-        painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
     }
 }
 
 void Map::DrawPredators(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
     for (const auto& predator : predators) {
-        if (predator.IsChidren())
+        if (predator.IsChidren() && !predator.isHungry())
+        {
+            painter.setBrush(Qt::red);
+            painter.drawEllipse(predator.getX() * cellWidth + cellWidth / 4, predator.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+        }
+		else if (predator.IsChidren() && predator.isHungry())
+		{
+			painter.setBrush(Qt::darkRed);
+            painter.drawEllipse(predator.getX() * cellWidth + cellWidth / 4, predator.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+		}
+        else if (!predator.canReproduce && !predator.isHungry())
         {
             painter.setBrush(Qt::yellow);
+            painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
         }
-        else if (!predator.canReproduce)
+        else if (!predator.canReproduce && predator.isHungry())
         {
             painter.setBrush(Qt::darkYellow);
+            painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
         }
         else if (predator.isHungry())
         {
             painter.setBrush(Qt::darkRed);
+            painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
         }
         else
         {
             painter.setBrush(Qt::red);
+            painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
         }
-
-        painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
     }
 }
 
@@ -181,59 +194,42 @@ void Map::reproducePreys()
 	}
 }
 
-//void Map::reproducePredators()
-//{
-//    std::vector<Predator> newPredators;
-//    for (int i = 0; i < predators.size(); ++i)
-//    {
-//        if (!predators[i].canReproduce) continue;
-//
-//        for (int j = i + 1; j < predators.size(); ++j)
-//        {
-//            if (predators[j].canReproduce)
-//            {
-//                if (predators[i].getX() == predators[j].getX() && predators[i].getY() == predators[j].getY())
-//                {
-//                    predators[i].reproduce(newPredators, N, N);
-//                    predators[i].canReproduce = false;
-//                    predators[j].canReproduce = false;
-//                    predators[i].setLastReproduction(currentTime);
-//                    predators[j].setLastReproduction(currentTime);
-//                    break;
-//                }
-//            }
-//        }
-//    }
-//
-//    for (const auto& newPredator : newPredators)
-//    {
-//        predators.push_back(newPredator);
-//    }
-//}
-
-void Map::FightPredators()
+void Map::CheckFightOrReproducePredators()
 {
+    std::vector<Predator> newPredators;
     std::vector<bool> dead(predators.size(), false);
+	std::vector<bool> reproduced(predators.size(), false);
 
     for (int i = 0; i < predators.size(); ++i)
     {
         if (dead[i]) continue;
+		if (reproduced[i]) continue;
 
         for (int j = i + 1; j < predators.size(); ++j)
         {
-            if (dead[j]) continue;
-
             if (predators[i].getX() == predators[j].getX() && predators[i].getY() == predators[j].getY())
             {
-                if (QRandomGenerator::global()->bounded(2) == 0)
+				if (dead[j]) continue;
+				if (reproduced[j]) continue;
+
+                if (predators[j].canReproduce && predators[i].canReproduce)
                 {
-                    dead[i] = true;
-                    break; 
+                    if (QRandomGenerator::global()->bounded(2) == 0)
+                    {
+						reproducePredators(i, j, newPredators, reproduced);
+                        break;
+                    }
+                    else 
+                    {
+						FightPredators(i, j, dead);
+                    }
                 }
                 else
                 {
-                    dead[j] = true; 
+					FightPredators(i, j, dead);
                 }
+                if (dead[i]) break;
+                if (reproduced[i]) break;
             }
         }
     }
@@ -247,6 +243,34 @@ void Map::FightPredators()
         }
     }
     predators = std::move(survivors);
+
+    for (const auto& newPredator : newPredators)
+    {
+        predators.push_back(newPredator);
+    }
+}
+
+void Map::reproducePredators(int i, int j, std::vector<Predator>& newPredators, std::vector<bool>& reproduced)
+{
+    predators[i].reproduce(newPredators, N, N);
+    predators[i].canReproduce = false;
+    predators[j].canReproduce = false;
+    predators[i].setLastReproduction(currentTime);
+    predators[j].setLastReproduction(currentTime);
+    reproduced[i] = true;
+    reproduced[j] = true;
+}
+
+void Map::FightPredators(int i, int j, std::vector<bool>& dead)
+{
+    if (QRandomGenerator::global()->bounded(2) == 0)
+    {
+        dead[i] = true;
+    }
+    else
+    {
+        dead[j] = true;
+    }
 }
 
 void Map::PredatorsEatPreys()
@@ -280,4 +304,17 @@ void Map::PredatorsEatPreys()
         }
     }
     preys = std::move(survivors);
+}
+
+void Map::RemoveDeadPredators()
+{
+    std::vector<Predator> survivors;
+    for (size_t i = 0; i < predators.size(); ++i)
+    {
+        if (!predators[i].isDeadStatus())
+        {
+            survivors.push_back(predators[i]);
+        }
+    }
+    predators = std::move(survivors);
 }

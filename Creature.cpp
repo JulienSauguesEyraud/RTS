@@ -47,24 +47,21 @@ void Creature::update(int gridWidth, int gridHeight, int deltaT, int currentTime
 
 void Creature::move(int gridWidth, int gridHeight, int deltaT)
 {
-	for (int i = 0; i < deltaT; ++i)
+	int direction = QRandomGenerator::global()->bounded(4);
+	switch (direction)
 	{
-		int direction = QRandomGenerator::global()->bounded(4);
-		switch (direction)
-		{
-		case 0: // Haut
-			y = (y + 1) % gridHeight;
-			break;
-		case 1: // Bas
-			y = (y - 1 + gridHeight) % gridHeight;
-			break;
-		case 2: // Droite
-			x = (x + 1) % gridWidth;
-			break;
-		case 3: // Gauche
-			x = (x - 1 + gridWidth) % gridWidth;
-			break;
-		}
+	case 0: // Haut
+		y = (y + 1) % gridHeight;
+		break;
+	case 1: // Bas
+		y = (y - 1 + gridHeight) % gridHeight;
+		break;
+	case 2: // Droite
+		x = (x + 1) % gridWidth;
+		break;
+	case 3: // Gauche
+		x = (x - 1 + gridWidth) % gridWidth;
+		break;
 	}
 }
 
