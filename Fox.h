@@ -1,5 +1,5 @@
-#ifndef _PREDATOR_H
-#define _PREDATOR_H
+#ifndef _FOX_H
+#define _FOX_H
 
 #pragma once
 
@@ -9,7 +9,7 @@
 
 #include "Creature.h"
 
-class Predator : public Creature
+class Fox : public Creature
 {
 protected:
 	int satiete = 10;
@@ -20,7 +20,7 @@ public:
 	bool isHungry() const;
 	bool isVeryHungry() const;
 	void resetSatiete();
-	void reproduce(std::vector<Predator>& newPredators, int gridWidth, int gridHeight) const;
+	void reproduce(std::vector<Fox>& newFoxes, int gridWidth, int gridHeight) const;
 	bool isDeadStatus() const;
 };
 

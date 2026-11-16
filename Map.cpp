@@ -9,8 +9,8 @@ Map::Map(QWidget *parent):
 {
     for (int i = 0; i < H0; ++i)
     {
-        preys.emplace_back(N, N);
-		predators.emplace_back(N, N);
+        rabbits.emplace_back(N, N);
+		foxes.emplace_back(N, N);
     }
 }
 
@@ -36,12 +36,12 @@ void Map::paintEvent(QPaintEvent *event)
     const int cellHeight = height() / N;
 
 	DrawGrid(painter, cellWidth, cellHeight);
-	DrawPreys(painter, cellWidth, cellHeight);
-	DrawPredators(painter, cellWidth, cellHeight);
+	DrawRabbits(painter, cellWidth, cellHeight);
+	DrawFoxes(painter, cellWidth, cellHeight);
 
 	painter.setFont(QFont("Arial", 12));
-	painter.drawText(0, 12, QString("Proies: " + QString::number(preys.size())));
-    painter.drawText(0, 36, QString("Prédateurs: " + QString::number(predators.size())));
+	painter.drawText(0, 12, QString("Proies: " + QString::number(rabbits.size())));
+    painter.drawText(0, 36, QString("Prédateurs: " + QString::number(foxes.size())));
 	painter.drawText(0, 54, QString("Jour: " + QString::number(currentTime)));
 }
 
@@ -56,16 +56,16 @@ void Map::start()
         {
             QThread::sleep(1);
 
-            updatePreys();
-			updatePredators();
-            PredatorsEatPreys();
-            RemoveDeadPredators();
-            CheckFightOrReproducePredators();
-            reproducePreys();
+            updateRabbits();
+			updateFoxes();
+            FoxesEatRabbits();
+            RemoveDeadFoxes();
+            CheckFightOrReproduceFoxes();
+            reproduceRabbits();
 
             currentTime += deltaT;
 
-            file << currentTime << ";" << preys.size() <<  ";" << predators.size() << "\n";
+            file << currentTime << ";" << rabbits.size() <<  ";" << foxes.size() << "\n";
             file.flush();
 
             QMetaObject::invokeMethod(this, [this]() {
@@ -93,149 +93,216 @@ void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeigh
     }
 }
 
-void Map::DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight)
+void Map::DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
-    for (const auto& prey : preys) {
-        if (prey.IsChidren())
+    for (const auto& rabbit : rabbits) {
+        if (rabbit.getIsMale())
         {
-            painter.setBrush(Qt::blue);
-            painter.drawEllipse(prey.getX() * cellWidth + cellWidth / 4, prey.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
-        }
-        else if (!prey.canReproduce)
-        {
-            painter.setBrush(Qt::darkBlue);
-            painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
+            if (rabbit.IsChidren())
+            {
+                painter.setBrush(Qt::blue);
+                painter.drawEllipse(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+            }
+            else if (!rabbit.canReproduce)
+            {
+                painter.setBrush(Qt::darkBlue);
+                painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+            }
+            else
+            {
+                painter.setBrush(Qt::blue);
+                painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+            }
         }
         else
         {
-			painter.setBrush(Qt::blue);
-            painter.drawEllipse(prey.getX() * cellWidth, prey.getY() * cellHeight, cellWidth, cellHeight);
+            if (rabbit.IsChidren())
+            {
+                painter.setBrush(Qt::cyan);
+                painter.drawEllipse(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+            }
+            else if (!rabbit.canReproduce)
+            {
+                painter.setBrush(Qt::darkCyan);
+                painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+            }
+            else
+            {
+                painter.setBrush(Qt::cyan);
+                painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+            }
         }
     }
 }
 
-void Map::DrawPredators(QPainter& painter, const int& cellWidth, const int& cellHeight)
+void Map::DrawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
-    for (const auto& predator : predators) {
-        if (predator.IsChidren() && !predator.isHungry())
+    for (const auto& fox : foxes) {
+        if (fox.getIsMale()) 
         {
-            painter.setBrush(Qt::red);
-            painter.drawEllipse(predator.getX() * cellWidth + cellWidth / 4, predator.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
-        }
-		else if (predator.IsChidren() && predator.isHungry())
-		{
-			painter.setBrush(Qt::darkRed);
-            painter.drawEllipse(predator.getX() * cellWidth + cellWidth / 4, predator.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+            if (fox.IsChidren() && !fox.isHungry())
+            {
+                painter.setBrush(Qt::red);
+                painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+            }
+            else if (fox.IsChidren() && fox.isHungry())
+            {
+                painter.setBrush(Qt::darkRed);
+                painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+            }
+            else if (!fox.canReproduce && !fox.isHungry())
+            {
+                painter.setBrush(Qt::yellow);
+                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+            }
+            else if (!fox.canReproduce && fox.isHungry())
+            {
+                painter.setBrush(Qt::darkYellow);
+                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+            }
+            else if (fox.isHungry())
+            {
+                painter.setBrush(Qt::darkRed);
+                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+            }
+            else
+            {
+                painter.setBrush(Qt::red);
+                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+            }
 		}
-        else if (!predator.canReproduce && !predator.isHungry())
-        {
-            painter.setBrush(Qt::yellow);
-            painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
-        }
-        else if (!predator.canReproduce && predator.isHungry())
-        {
-            painter.setBrush(Qt::darkYellow);
-            painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
-        }
-        else if (predator.isHungry())
-        {
-            painter.setBrush(Qt::darkRed);
-            painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
-        }
         else
         {
-            painter.setBrush(Qt::red);
-            painter.drawEllipse(predator.getX() * cellWidth, predator.getY() * cellHeight, cellWidth, cellHeight);
+            if (fox.IsChidren() && !fox.isHungry())
+            {
+                painter.setBrush(Qt::magenta);
+                painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+            }
+            else if (fox.IsChidren() && fox.isHungry())
+            {
+                painter.setBrush(Qt::darkMagenta);
+                painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+            }
+            else if (!fox.canReproduce && !fox.isHungry())
+            {
+                painter.setBrush(Qt::gray);
+                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+            }
+            else if (!fox.canReproduce && fox.isHungry())
+            {
+                painter.setBrush(Qt::darkGray);
+                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+            }
+            else if (fox.isHungry())
+            {
+                painter.setBrush(Qt::darkMagenta);
+                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+            }
+            else
+            {
+                painter.setBrush(Qt::magenta);
+                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+            }
         }
     }
 }
 
-void Map::updatePreys()
+void Map::updateRabbits()
 {
-    for (auto& prey : preys) {
-        prey.update(N, N, deltaT, currentTime);
+    for (auto& rabbit : rabbits) {
+        rabbit.update(N, N, deltaT, currentTime);
     }
 }
 
-void Map::updatePredators()
+void Map::updateFoxes()
 {
-    for (auto& predator : predators) {
-        predator.update(N, N, deltaT, currentTime);
+    for (auto& fox : foxes) {
+        fox.update(N, N, deltaT, currentTime);
     }
 }
 
-void Map::reproducePreys()
+void Map::reproduceRabbits()
 {
-	std::vector<Prey> newPreys;
-	for (int i = 0; i < preys.size(); ++i)
+	std::vector<Rabbit> newRabbits;
+	for (int i = 0; i < rabbits.size(); ++i)
 	{
-		if (!preys[i].canReproduce) continue;
+		if (!rabbits[i].canReproduce) continue;
 
-		for (int j = i + 1; j < preys.size(); ++j)
+		for (int j = i + 1; j < rabbits.size(); ++j)
 		{
-            if (preys[j].canReproduce)
-			{
-                if (preys[i].getX() == preys[j].getX() && preys[i].getY() == preys[j].getY())
+            if (rabbits[j].canReproduce)
+            {
+                if (rabbits[i].getIsMale() != rabbits[j].getIsMale())
 				{
-					preys[i].reproduce(newPreys, N, N);
-					preys[i].canReproduce = false;
-					preys[j].canReproduce = false;
-					preys[i].setLastReproduction(currentTime);
-					preys[j].setLastReproduction(currentTime);
-                    break;
-				}
+                    if (rabbits[i].getX() == rabbits[j].getX() && rabbits[i].getY() == rabbits[j].getY())
+                    {
+                        rabbits[i].reproduce(newRabbits, N, N);
+                        rabbits[i].canReproduce = false;
+                        rabbits[j].canReproduce = false;
+                        rabbits[i].setLastReproduction(currentTime);
+                        rabbits[j].setLastReproduction(currentTime);
+                        break;
+                    }
+                }
 			}
 		}
 	}
 
-	for (const auto& newPrey : newPreys)
+	for (const auto& newRabbit : newRabbits)
 	{
-		preys.push_back(newPrey);
+		rabbits.push_back(newRabbit);
 	}
 }
 
-void Map::CheckFightOrReproducePredators()
+void Map::CheckFightOrReproduceFoxes()
 {
-    std::vector<Predator> newPredators;
-    std::vector<bool> dead(predators.size(), false);
-	std::vector<bool> reproduced(predators.size(), false);
+    std::vector<Fox> newFoxes;
+    std::vector<bool> dead(foxes.size(), false);
+	std::vector<bool> reproduced(foxes.size(), false);
 
-    for (int i = 0; i < predators.size(); ++i)
+    for (int i = 0; i < foxes.size(); ++i)
     {
         if (dead[i]) continue;
 		if (reproduced[i]) continue;
-		if (predators[i].IsChidren()) continue;
+		if (foxes[i].IsChidren()) continue;
 
-        for (int j = i + 1; j < predators.size(); ++j)
+        for (int j = i + 1; j < foxes.size(); ++j)
         {
             if (dead[j]) continue;
             if (reproduced[j]) continue;
-            if (predators[j].IsChidren()) continue;
+            if (foxes[j].IsChidren()) continue;
 
-            if (predators[i].getX() == predators[j].getX() && predators[i].getY() == predators[j].getY())
+            if (foxes[i].getX() == foxes[j].getX() && foxes[i].getY() == foxes[j].getY())
             {
-                if (predators[j].canReproduce && predators[i].canReproduce)
+                if (foxes[i].getIsMale() != foxes[j].getIsMale())
                 {
-                    if (!predators[i].isHungry() && !predators[j].isHungry())
+                    if (foxes[j].canReproduce && foxes[i].canReproduce)
                     {
-                        if (QRandomGenerator::global()->bounded(2) == 0)
+                        if (!foxes[i].isHungry() && !foxes[j].isHungry())
                         {
-                            reproducePredators(i, j, newPredators, reproduced);
-                            break;
+                            if (QRandomGenerator::global()->bounded(2) == 0)
+                            {
+                                reproduceFoxes(i, j, newFoxes, reproduced);
+                                break;
+                            }
+                            else
+                            {
+                                FightFoxes(i, j, dead);
+                            }
                         }
                         else
                         {
-                            FightPredators(i, j, dead);
+                            FightFoxes(i, j, dead);
                         }
                     }
                     else
                     {
-                        FightPredators(i, j, dead);
+                        FightFoxes(i, j, dead);
                     }
                 }
                 else
                 {
-					FightPredators(i, j, dead);
+					FightFoxes(i, j, dead);
                 }
                 if (dead[i]) break;
                 if (reproduced[i]) break;
@@ -243,192 +310,437 @@ void Map::CheckFightOrReproducePredators()
         }
     }
 
-    std::vector<Predator> survivors;
-    for (size_t i = 0; i < predators.size(); ++i)
+    std::vector<Fox> survivors;
+    for (size_t i = 0; i < foxes.size(); ++i)
     {
         if (!dead[i])
         {
-            survivors.push_back(predators[i]);
+            survivors.push_back(foxes[i]);
         }
     }
-    predators = std::move(survivors);
+    foxes = std::move(survivors);
 
-    for (const auto& newPredator : newPredators)
+    for (const auto& newFox : newFoxes)
     {
-        predators.push_back(newPredator);
+        foxes.push_back(newFox);
     }
 }
 
-void Map::reproducePredators(int i, int j, std::vector<Predator>& newPredators, std::vector<bool>& reproduced)
+void Map::reproduceFoxes(int i, int j, std::vector<Fox>& newFoxes, std::vector<bool>& reproduced)
 {
-    predators[i].reproduce(newPredators, N, N);
-    predators[i].canReproduce = false;
-    predators[j].canReproduce = false;
-    predators[i].setLastReproduction(currentTime);
-    predators[j].setLastReproduction(currentTime);
+    foxes[i].reproduce(newFoxes, N, N);
+    foxes[i].canReproduce = false;
+    foxes[j].canReproduce = false;
+    foxes[i].setLastReproduction(currentTime);
+    foxes[j].setLastReproduction(currentTime);
     reproduced[i] = true;
     reproduced[j] = true;
 }
 
-void Map::FightPredators(int i, int j, std::vector<bool>& dead)
+void Map::FightFoxes(int i, int j, std::vector<bool>& dead)
 {
-    if (!predators[i].isHungry() && !predators[j].isHungry())
+    // les prédateurs mangent le vaincu uniquement quand ils sont très affamés, sinon ils se battent juste et le vaincu meurt
+    if (!foxes[i].isHungry() && !foxes[j].isHungry())
     {
-        if (QRandomGenerator::global()->bounded(2) == 0)
+        if (foxes[i].getIsMale() == foxes[j].getIsMale())
         {
-            dead[i] = true;
-            predators[j].resetSatiete();
-        }
-        else
-        {
-            dead[j] = true;
-            predators[i].resetSatiete();
-        }
-    }
-    else if (predators[i].isHungry() && !predators[j].isHungry())
-    {
-		if (predators[i].isVeryHungry())
-		{
-			if (QRandomGenerator::global()->bounded(3) == 0) // prédateur très affamé a 1 chance sur 3 de tuer le prédateur pas affamé
+            if (QRandomGenerator::global()->bounded(2) == 0)
             {
-                dead[j] = true;
-                predators[i].resetSatiete();
+                dead[i] = true;
             }
             else
             {
-                dead[i] = true;
-                predators[j].resetSatiete();
+                dead[j] = true;
             }
+        }
+		else if (foxes[i].getIsMale() && !foxes[j].getIsMale())
+		{
+			if (QRandomGenerator::global()->bounded(3) == 0) // prédateur mâle a 66% de chances de tuer le prédateur femelle
+			{
+				dead[j] = true;
+			}
+			else
+			{
+				dead[i] = true;
+			}
 		}
 		else
 		{
-            if (QRandomGenerator::global()->bounded(3) == 0) // prédateur un peu affamé a 2 chance sur 3 de tuer le prédateur pas affamé
-            {
-                dead[i] = true;
-                predators[j].resetSatiete();
-            }
-            else
-            {
-                dead[j] = true;
-                predators[i].resetSatiete();
-            }
+			if (QRandomGenerator::global()->bounded(3) == 0) // prédateur femelle a 33% de chances de tuer le prédateur mâle
+			{
+				dead[i] = true;
+			}
+			else
+			{
+				dead[j] = true;
+			}
 		}
     }
-    else if (!predators[i].isHungry() && predators[j].isHungry())
+
+    else if (foxes[i].isHungry() && !foxes[j].isHungry())
     {
-        if (predators[j].isVeryHungry())
-        {
-            if (QRandomGenerator::global()->bounded(3) == 0) // prédateur très affamé a 1 chance sur 3 de tuer le prédateur pas affamé
+		if (foxes[i].getIsMale() == foxes[j].getIsMale())
+		{
+            if (foxes[i].isVeryHungry())
             {
-                dead[i] = true;
-                predators[j].resetSatiete();
+                if (QRandomGenerator::global()->bounded(5) == 0) // prédateur très affamé a 20% de chances de tuer le prédateur pas affamé
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+                else
+                {
+                    dead[i] = true;
+                }
             }
             else
             {
-                dead[j] = true;
-                predators[i].resetSatiete();
+                if (QRandomGenerator::global()->bounded(5) == 0) // prédateur un peu affamé a 80% de chances de tuer le prédateur pas affamé
+                {
+                    dead[i] = true;
+                }
+                else
+                {
+                    dead[j] = true;
+                }
+            }
+		}
+        else if (foxes[i].getIsMale() && !foxes[j].getIsMale())
+        {
+            if (foxes[i].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(3) == 0) // mâle très affamé a 33% de chances de tuer la femelle pas affamé
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+                else
+                {
+                    dead[i] = true;
+                }
+            }
+            else
+            {
+                if (QRandomGenerator::global()->bounded(10) == 0) // mâle un peu affamé a 90% de chances de tuer la femelle pas affamé
+                {
+                    dead[i] = true;
+                }
+                else
+                {
+                    dead[j] = true;
+                }
             }
         }
         else
         {
-            if (QRandomGenerator::global()->bounded(3) == 0) // prédateur un peu affamé a 2 chance sur 3 de tuer le prédateur pas affamé
+            if (foxes[i].isVeryHungry())
             {
-                dead[j] = true;
-                predators[i].resetSatiete();
+                if (QRandomGenerator::global()->bounded(10) == 0) // femelle très affamé a 10% de chances de tuer le mâle pas affamé
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+                else
+                {
+                    dead[i] = true;
+                }
             }
             else
             {
-                dead[i] = true;
-                predators[j].resetSatiete();
+                if (QRandomGenerator::global()->bounded(3) == 0) // femelle un peu affamé a 66% de chances de tuer le mâle pas affamé
+                {
+                    dead[i] = true;
+                }
+                else
+                {
+                    dead[j] = true;
+                }
             }
         }
     }
-    else if (predators[i].isHungry() && predators[j].isHungry())
+
+    else if (!foxes[i].isHungry() && foxes[j].isHungry())
     {
-        if (!predators[i].isVeryHungry() && predators[j].isVeryHungry())
+        if (foxes[i].getIsMale() == foxes[j].getIsMale())
         {
-            if (QRandomGenerator::global()->bounded(4) == 0) // prédateur très affamé a 1 chance sur 4 de tuer le prédateur un peu affamé
+            if (foxes[j].isVeryHungry())
             {
-                dead[i] = true;
-                predators[j].resetSatiete();
+                if (QRandomGenerator::global()->bounded(5) == 0) // prédateur très affamé a 20% de chances de tuer le prédateur pas affamé
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+                else
+                {
+                    dead[j] = true;
+                }
             }
             else
             {
-                dead[j] = true;
-                predators[i].resetSatiete();
+                if (QRandomGenerator::global()->bounded(5) == 0) // prédateur un peu affamé a 80% de chances de tuer le prédateur pas affamé
+                {
+                    dead[j] = true;
+                }
+                else
+                {
+                    dead[i] = true;
+                }
             }
         }
-        else if (predators[i].isVeryHungry() && !predators[j].isVeryHungry())
+        else if (foxes[i].getIsMale() && !foxes[j].getIsMale())
         {
-            if (QRandomGenerator::global()->bounded(4) == 0) // prédateur un peu affamé a 3 chance sur 4 de tuer le prédateur très affamé
+            if (foxes[j].isVeryHungry())
             {
-                dead[j] = true;
-                predators[i].resetSatiete();
+                if (QRandomGenerator::global()->bounded(10) == 0) // femelle très affamé a 10% de chances de tuer le mâle pas affamé
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+                else
+                {
+                    dead[j] = true;
+                }
             }
             else
             {
-                dead[i] = true;
-                predators[j].resetSatiete();
+                if (QRandomGenerator::global()->bounded(3) == 0) // femelle un peu affamé a 66% de chances de tuer le mâle pas affamé
+                {
+                    dead[j] = true;
+                }
+                else
+                {
+                    dead[i] = true;
+                }
             }
         }
         else
         {
-			if (QRandomGenerator::global()->bounded(2) == 0) // les 2 prédateurs très affamés ont 50% de chance de tuer l'autre
+            if (foxes[j].isVeryHungry())
             {
-                dead[i] = true;
-                predators[j].resetSatiete();
+                if (QRandomGenerator::global()->bounded(3) == 0) // mâle très affamé a 33% de chances de tuer la femelle pas affamé
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+                else
+                {
+                    dead[j] = true;
+                }
             }
             else
             {
-                dead[j] = true;
-                predators[i].resetSatiete();
+                if (QRandomGenerator::global()->bounded(10) == 0) // mâle un peu affamé a 90% de chances de tuer la femelle pas affamé
+                {
+                    dead[j] = true;
+                }
+                else
+                {
+                    dead[i] = true;
+                }
+            }
+        }
+    }
+
+    else if (foxes[i].isHungry() && foxes[j].isHungry())
+    {
+        if (foxes[i].getIsMale() == foxes[j].getIsMale())
+        {
+            if (!foxes[i].isVeryHungry() && foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(10) == 0) // prédateur très affamé a 10% de chances de tuer le prédateur un peu affamé
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+                else
+                {
+                    dead[j] = true;
+                }
+            }
+            else if (foxes[i].isVeryHungry() && !foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(10) == 0) // prédateur un peu affamé a 90% de chances de tuer le prédateur très affamé
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+                else
+                {
+                    dead[i] = true;
+                }
+            }
+            else if (foxes[i].isVeryHungry() && foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(2) == 0) // les 2 prédateurs très affamés ont 50% de chance de tuer l'autre
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+                else
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+            }
+            else
+            {
+                if (QRandomGenerator::global()->bounded(2) == 0) // les 2 prédateurs très affamés ont 50% de chance de tuer l'autre
+                {
+                    dead[i] = true;
+                }
+                else
+                {
+                    dead[j] = true;
+                }
+            }
+        }
+        else if (foxes[i].getIsMale() && !foxes[j].getIsMale())
+        {
+            if (!foxes[i].isVeryHungry() && foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(20) == 0) // mâle un peu affamé a 95% de chances de tuer la femelle très affamé
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+                else
+                {
+                    dead[j] = true;
+                }
+            }
+            else if (foxes[i].isVeryHungry() && !foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(4) == 0) // femelle un peu affamé a 75% de chances de tuer le mâle très affamé
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+                else
+                {
+                    dead[i] = true;
+                }
+            }
+            else if (foxes[i].isVeryHungry() && foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(3) == 0) // le mâle très affamé a 66% de chance de tuer la femelle très affamé
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+                else
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+            }
+            else
+            {
+				if (QRandomGenerator::global()->bounded(3) == 0) // le mâle un peu affamé a 66% de chance de tuer la femelle un peu affamé
+                {
+                    dead[i] = true;
+                }
+                else
+                {
+                    dead[j] = true;
+                }
+            }
+        }
+        else
+        {
+            if (!foxes[i].isVeryHungry() && foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(4) == 0) // femelle un peu affamé a 75% de chances de tuer le mâle très affamé
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+                else
+                {
+                    dead[j] = true;
+                }
+            }
+            else if (foxes[i].isVeryHungry() && !foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(20) == 0) // mâle un peu affamé a 95% de chances de tuer la femelle très affamé
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+                else
+                {
+                    dead[i] = true;
+                }
+            }
+            else if (foxes[i].isVeryHungry() && foxes[j].isVeryHungry())
+            {
+                if (QRandomGenerator::global()->bounded(3) == 0) // mâle très affamé a 66% de chance de tuer la femelle très affamé
+                {
+                    dead[j] = true;
+                    foxes[i].resetSatiete();
+                }
+                else
+                {
+                    dead[i] = true;
+                    foxes[j].resetSatiete();
+                }
+            }
+            else
+            {
+                if (QRandomGenerator::global()->bounded(3) == 0) // mâle très affamé a 66% de chance de tuer la femelle très affamé
+                {
+                    dead[j] = true;
+                }
+                else
+                {
+                    dead[i] = true;
+                }
             }
         }
     }
 }
 
-void Map::PredatorsEatPreys()
+void Map::FoxesEatRabbits()
 {
-    std::vector<bool> dead(preys.size(), false);
+    std::vector<bool> dead(rabbits.size(), false);
 
-    for (int i = 0; i < preys.size(); ++i)
+    for (int i = 0; i < rabbits.size(); ++i)
     {
         if (dead[i]) continue;
 
-        for (int j = 0; j < predators.size(); ++j)
+        for (int j = 0; j < foxes.size(); ++j)
         {
-            if (predators[j].isHungry())
+            if (foxes[j].isHungry())
             {
-                if (preys[i].getX() == predators[j].getX() && preys[i].getY() == predators[j].getY())
+                if (rabbits[i].getX() == foxes[j].getX() && rabbits[i].getY() == foxes[j].getY())
                 {
                     dead[i] = true;
-                    predators[j].resetSatiete();
+                    foxes[j].resetSatiete();
                     break;
                 }
             }
         }
     }
 
-    std::vector<Prey> survivors;
-    for (size_t i = 0; i < preys.size(); ++i)
+    std::vector<Rabbit> survivors;
+    for (size_t i = 0; i < rabbits.size(); ++i)
     {
         if (!dead[i])
         {
-            survivors.push_back(preys[i]);
+            survivors.push_back(rabbits[i]);
         }
     }
-    preys = std::move(survivors);
+    rabbits = std::move(survivors);
 }
 
-void Map::RemoveDeadPredators()
+void Map::RemoveDeadFoxes()
 {
-    std::vector<Predator> survivors;
-    for (size_t i = 0; i < predators.size(); ++i)
+    std::vector<Fox> survivors;
+    for (size_t i = 0; i < foxes.size(); ++i)
     {
-        if (!predators[i].isDeadStatus())
+        if (!foxes[i].isDeadStatus())
         {
-            survivors.push_back(predators[i]);
+            survivors.push_back(foxes[i]);
         }
     }
-    predators = std::move(survivors);
+    foxes = std::move(survivors);
 }

@@ -16,6 +16,7 @@ protected:
 	int minimumAgeForReproduction = 30;
 	int daysToReproduce = 10;
 	int lastReproduction;
+	bool isMale;
 
 	void move(int gridWidth, int gridHeight, int deltaT);
 	virtual void grow(int deltaT, int currentTime);
@@ -27,6 +28,7 @@ public:
 	virtual ~Creature();
 	int getX() const;
 	int getY() const;
+	bool getIsMale() const;
 	virtual void update(int gridWidth, int gridHeight, int deltaT, int currentTime);
 	bool IsChidren() const;
 	void setLastReproduction(int currentTime);

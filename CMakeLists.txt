@@ -18,10 +18,10 @@ set(PROJECT_SOURCES
     Map.cpp
     Creature.h
     Creature.cpp
-    Prey.h
-    Prey.cpp
-    Predator.h
-    Predator.cpp
+    Rabbit.h
+    Rabbit.cpp
+    Fox.h
+    Fox.cpp
 )
 
 qt_add_executable(TP_RTS ${PROJECT_SOURCES} )

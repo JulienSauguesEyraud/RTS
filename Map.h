@@ -4,8 +4,8 @@
 #include <QWidget>
 #include <vector>
 #include <memory>
-#include "Prey.h"
-#include "Predator.h"
+#include "Rabbit.h"
+#include "Fox.h"
 
 class Map: public QWidget
 {
@@ -15,20 +15,20 @@ private:
 	const int deltaT = 1;
     int currentTime = 0;
 
-    std::vector<Prey> preys;
-    std::vector<Predator> predators;
+    std::vector<Rabbit> rabbits;
+    std::vector<Fox> foxes;
 
     void DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const;
-    void DrawPreys(QPainter& painter, const int& cellWidth, const int& cellHeight);
-    void DrawPredators(QPainter& painter, const int& cellWidth, const int& cellHeight);
-    void updatePreys();
-	void updatePredators();
-	void reproducePreys();
-	void CheckFightOrReproducePredators();
-	void reproducePredators(int i, int j, std::vector<Predator>& newPredators, std::vector<bool>& reproduced);
-    void FightPredators(int i, int j, std::vector<bool>& dead);
-    void PredatorsEatPreys();
-	void RemoveDeadPredators();
+    void DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHeight);
+    void DrawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeight);
+    void updateRabbits();
+	void updateFoxes();
+	void reproduceRabbits();
+	void CheckFightOrReproduceFoxes();
+	void reproduceFoxes(int i, int j, std::vector<Fox>& newFoxes, std::vector<bool>& reproduced);
+    void FightFoxes(int i, int j, std::vector<bool>& dead);
+    void FoxesEatRabbits();
+	void RemoveDeadFoxes();
 
 public:
     Map(QWidget *parent = nullptr);

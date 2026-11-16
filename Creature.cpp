@@ -23,6 +23,7 @@ Creature::Creature(int gridWidth, int gridHeight, bool initialCreature, int init
 		canReproduce = false;
 	}
 	lastReproduction = daysToReproduce;
+	isMale = QRandomGenerator::global()->bounded(2) == 0;
 }
 
 Creature::~Creature()
@@ -37,6 +38,11 @@ int Creature::getX() const
 int Creature::getY() const
 {
 	return y;
+}
+
+bool Creature::getIsMale() const
+{
+	return isMale;
 }
 
 void Creature::update(int gridWidth, int gridHeight, int deltaT, int currentTime)
