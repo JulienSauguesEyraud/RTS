@@ -7,6 +7,9 @@
 Map::Map(QWidget *parent):
     QWidget(parent)
 {
+    rabbitImage.load(":/images/rabbit.png");
+    foxImage.load(":/images/fox.png");
+
     for (int i = 0; i < H0; ++i)
     {
         rabbits.emplace_back(N, N);
@@ -96,40 +99,60 @@ void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeigh
 void Map::DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
     for (const auto& rabbit : rabbits) {
-        if (rabbit.getIsMale())
+        if (showImages && !rabbitImage.isNull())
         {
             if (rabbit.IsChidren())
             {
-                painter.setBrush(Qt::blue);
-                painter.drawEllipse(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
-            }
-            else if (!rabbit.canReproduce)
-            {
-                painter.setBrush(Qt::darkBlue);
-                painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+                painter.drawImage(
+                    QRect(rabbit.getX() * cellWidth + cellWidth / 3, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 4, cellHeight / 2),
+                    rabbitImage
+                );
             }
             else
             {
-                painter.setBrush(Qt::blue);
-                painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+                painter.drawImage(
+                    QRect(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight, cellWidth / 2, cellHeight),
+                    rabbitImage
+                );
             }
         }
         else
         {
-            if (rabbit.IsChidren())
+            if (rabbit.getIsMale())
             {
-                painter.setBrush(Qt::cyan);
-                painter.drawEllipse(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
-            }
-            else if (!rabbit.canReproduce)
-            {
-                painter.setBrush(Qt::darkCyan);
-                painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+                if (rabbit.IsChidren())
+                {
+                    painter.setBrush(Qt::blue);
+                    painter.drawEllipse(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+                }
+                else if (!rabbit.canReproduce)
+                {
+                    painter.setBrush(Qt::darkBlue);
+                    painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+                }
+                else
+                {
+                    painter.setBrush(Qt::blue);
+                    painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+                }
             }
             else
             {
-                painter.setBrush(Qt::cyan);
-                painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+                if (rabbit.IsChidren())
+                {
+                    painter.setBrush(Qt::cyan);
+                    painter.drawEllipse(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+                }
+                else if (!rabbit.canReproduce)
+                {
+                    painter.setBrush(Qt::darkCyan);
+                    painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+                }
+                else
+                {
+                    painter.setBrush(Qt::cyan);
+                    painter.drawEllipse(rabbit.getX() * cellWidth, rabbit.getY() * cellHeight, cellWidth, cellHeight);
+                }
             }
         }
     }
@@ -138,70 +161,90 @@ void Map::DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHe
 void Map::DrawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
     for (const auto& fox : foxes) {
-        if (fox.getIsMale()) 
+        if (showImages && !foxImage.isNull())
         {
-            if (fox.IsChidren() && !fox.isHungry())
+            if (fox.IsChidren())
             {
-                painter.setBrush(Qt::red);
-                painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
-            }
-            else if (fox.IsChidren() && fox.isHungry())
-            {
-                painter.setBrush(Qt::darkRed);
-                painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
-            }
-            else if (!fox.canReproduce && !fox.isHungry())
-            {
-                painter.setBrush(Qt::yellow);
-                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
-            }
-            else if (!fox.canReproduce && fox.isHungry())
-            {
-                painter.setBrush(Qt::darkYellow);
-                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
-            }
-            else if (fox.isHungry())
-            {
-                painter.setBrush(Qt::darkRed);
-                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                painter.drawImage(
+                    QRect(fox.getX() * cellWidth + cellWidth / 3, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 3, cellHeight / 2),
+                    foxImage
+                );
             }
             else
             {
-                painter.setBrush(Qt::red);
-                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                painter.drawImage(
+                    QRect(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight, cellWidth / 1.5, cellHeight),
+                    foxImage
+                );
             }
-		}
+        }
         else
         {
-            if (fox.IsChidren() && !fox.isHungry())
+            if (fox.getIsMale())
             {
-                painter.setBrush(Qt::magenta);
-                painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
-            }
-            else if (fox.IsChidren() && fox.isHungry())
-            {
-                painter.setBrush(Qt::darkMagenta);
-                painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
-            }
-            else if (!fox.canReproduce && !fox.isHungry())
-            {
-                painter.setBrush(Qt::gray);
-                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
-            }
-            else if (!fox.canReproduce && fox.isHungry())
-            {
-                painter.setBrush(Qt::darkGray);
-                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
-            }
-            else if (fox.isHungry())
-            {
-                painter.setBrush(Qt::darkMagenta);
-                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                if (fox.IsChidren() && !fox.isHungry())
+                {
+                    painter.setBrush(Qt::red);
+                    painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+                }
+                else if (fox.IsChidren() && fox.isHungry())
+                {
+                    painter.setBrush(Qt::darkRed);
+                    painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+                }
+                else if (!fox.canReproduce && !fox.isHungry())
+                {
+                    painter.setBrush(Qt::yellow);
+                    painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                }
+                else if (!fox.canReproduce && fox.isHungry())
+                {
+                    painter.setBrush(Qt::darkYellow);
+                    painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                }
+                else if (fox.isHungry())
+                {
+                    painter.setBrush(Qt::darkRed);
+                    painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                }
+                else
+                {
+                    painter.setBrush(Qt::red);
+                    painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                }
             }
             else
             {
-                painter.setBrush(Qt::magenta);
-                painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                if (fox.IsChidren() && !fox.isHungry())
+                {
+                    painter.setBrush(Qt::magenta);
+                    painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+                }
+                else if (fox.IsChidren() && fox.isHungry())
+                {
+                    painter.setBrush(Qt::darkMagenta);
+                    painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
+                }
+                else if (!fox.canReproduce && !fox.isHungry())
+                {
+                    painter.setBrush(Qt::gray);
+                    painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                }
+                else if (!fox.canReproduce && fox.isHungry())
+                {
+                    painter.setBrush(Qt::darkGray);
+                    painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                }
+                else if (fox.isHungry())
+                {
+                    painter.setBrush(Qt::darkMagenta);
+                    painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                }
+                else
+                {
+                    painter.setBrush(Qt::magenta);
+                    painter.drawEllipse(fox.getX() * cellWidth, fox.getY() * cellHeight, cellWidth, cellHeight);
+                }
             }
         }
     }

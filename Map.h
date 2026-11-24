@@ -2,6 +2,7 @@
 #define _MAP_H
 
 #include <QWidget>
+#include <QImage>
 #include <vector>
 #include <memory>
 #include "Rabbit.h"
@@ -10,6 +11,9 @@
 class Map: public QWidget
 {
 private:
+    QImage rabbitImage;
+    QImage foxImage;
+    const bool showImages = true;
     const int N = 20;
     const int H0 = 50;
 	const int deltaT = 1;

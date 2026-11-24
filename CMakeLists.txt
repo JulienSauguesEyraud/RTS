@@ -22,6 +22,7 @@ set(PROJECT_SOURCES
     Rabbit.cpp
     Fox.h
     Fox.cpp
+    resources.qrc
 )
 
 qt_add_executable(TP_RTS ${PROJECT_SOURCES} )
