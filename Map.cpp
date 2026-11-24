@@ -60,7 +60,7 @@ void Map::start()
 
         while (true)
         {
-            QThread::sleep(1);
+            QThread::msleep(500);
 
             updateRabbits();
 			updateFoxes();

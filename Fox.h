@@ -14,7 +14,7 @@ class Fox : public Creature
 protected:
 	void grow(int deltaT, int currentTime) override;
 public:
-	using Creature::Creature;
+	Fox(int gridWidth, int gridHeight, bool isDead, int x, int y);
 	bool isHungry() const;
 	bool isVeryHungry() const;
 	int getSatiete() const;

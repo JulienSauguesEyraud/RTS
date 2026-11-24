@@ -12,7 +12,7 @@
 class Rabbit : public Creature
 {
 public:
-	using Creature::Creature;
+	Rabbit(int gridWidth, int gridHeight, bool isDead, int x, int y);
 	void reproduce(std::vector<Rabbit>& newRabbits, int gridWidth, int gridHeight) const;
 };
 

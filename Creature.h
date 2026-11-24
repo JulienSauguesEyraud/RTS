@@ -16,6 +16,7 @@ protected:
 	bool isDead = false;
 	int minimumAgeForReproduction = 30;
 	int daysToReproduce = 10;
+	int ageToDie = 1000;
 	int lastReproduction;
 	bool isMale;
 	int satiete = 10;
