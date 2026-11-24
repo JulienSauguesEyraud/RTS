@@ -47,11 +47,11 @@ bool Creature::getIsMale() const
 
 void Creature::update(int gridWidth, int gridHeight, int deltaT, int currentTime)
 {
-	move(gridWidth, gridHeight, deltaT);
+	move(gridWidth, gridHeight);
 	grow(deltaT, currentTime);
 }
 
-void Creature::move(int gridWidth, int gridHeight, int deltaT)
+void Creature::move(int gridWidth, int gridHeight)
 {
 	int direction = QRandomGenerator::global()->bounded(4);
 	switch (direction)
@@ -94,4 +94,15 @@ bool Creature::IsChidren() const
 void Creature::setLastReproduction(int currentTime)
 {
 	lastReproduction = currentTime;
+}
+
+void Creature::resetSatiete()
+{
+	satiete = 10;
+	isDead = false;
+}
+
+bool Creature::isDeadStatus() const
+{
+	return isDead;
 }

@@ -13,12 +13,14 @@ protected:
 	int x;
 	int y;
 	int age = 0;
+	bool isDead = false;
 	int minimumAgeForReproduction = 30;
 	int daysToReproduce = 10;
 	int lastReproduction;
 	bool isMale;
+	int satiete = 10;
 
-	void move(int gridWidth, int gridHeight, int deltaT);
+	void move(int gridWidth, int gridHeight);
 	virtual void grow(int deltaT, int currentTime);
 
 public:
@@ -32,6 +34,8 @@ public:
 	virtual void update(int gridWidth, int gridHeight, int deltaT, int currentTime);
 	bool IsChidren() const;
 	void setLastReproduction(int currentTime);
+	void resetSatiete();
+	bool isDeadStatus() const;
 };
 
 #endif

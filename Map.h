@@ -15,7 +15,8 @@ private:
     QImage foxImage;
     const bool showImages = true;
     const int N = 20;
-    const int H0 = 50;
+    const int H0Rabbit = 200;
+	const int H0Fox = 20;
 	const int deltaT = 1;
     int currentTime = 0;
 

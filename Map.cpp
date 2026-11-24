@@ -10,10 +10,13 @@ Map::Map(QWidget *parent):
     rabbitImage.load(":/images/rabbit.png");
     foxImage.load(":/images/fox.png");
 
-    for (int i = 0; i < H0; ++i)
+    for (int i = 0; i < H0Rabbit; ++i)
     {
         rabbits.emplace_back(N, N);
-		foxes.emplace_back(N, N);
+    }
+    for (int i = 0; i < H0Fox; ++i)
+    {
+        foxes.emplace_back(N, N);
     }
 }
 
@@ -301,13 +304,13 @@ void Map::CheckFightOrReproduceFoxes()
 {
     std::vector<Fox> newFoxes;
     std::vector<bool> dead(foxes.size(), false);
-	std::vector<bool> reproduced(foxes.size(), false);
+    std::vector<bool> reproduced(foxes.size(), false);
 
     for (int i = 0; i < foxes.size(); ++i)
     {
         if (dead[i]) continue;
-		if (reproduced[i]) continue;
-		if (foxes[i].IsChidren()) continue;
+        if (reproduced[i]) continue;
+        if (foxes[i].IsChidren()) continue;
 
         for (int j = i + 1; j < foxes.size(); ++j)
         {
@@ -321,21 +324,15 @@ void Map::CheckFightOrReproduceFoxes()
                 {
                     if (foxes[j].canReproduce && foxes[i].canReproduce)
                     {
-                        if (!foxes[i].isHungry() && !foxes[j].isHungry())
+                        // 
+                        if (QRandomGenerator::global()->bounded((foxes[i].getSatiete() + foxes[j].getSatiete()) / 2 + std::max(foxes[i].getSatiete(), foxes[j].getSatiete())) == 0)
                         {
-                            if (QRandomGenerator::global()->bounded(2) == 0)
-                            {
-                                reproduceFoxes(i, j, newFoxes, reproduced);
-                                break;
-                            }
-                            else
-                            {
-                                FightFoxes(i, j, dead);
-                            }
+                            FightFoxes(i, j, dead);
                         }
                         else
                         {
-                            FightFoxes(i, j, dead);
+                            reproduceFoxes(i, j, newFoxes, reproduced);
+                            break;
                         }
                     }
                     else
@@ -345,7 +342,7 @@ void Map::CheckFightOrReproduceFoxes()
                 }
                 else
                 {
-					FightFoxes(i, j, dead);
+                    FightFoxes(i, j, dead);
                 }
                 if (dead[i]) break;
                 if (reproduced[i]) break;

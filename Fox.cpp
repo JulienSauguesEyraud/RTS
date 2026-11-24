@@ -20,22 +20,16 @@ bool Fox::isVeryHungry() const
 	return satiete <= 2;
 }
 
-void Fox::resetSatiete()
+int Fox::getSatiete() const
 {
-	satiete = 10;
-	isDead = false;
+	return satiete;
 }
 
 void Fox::reproduce(std::vector<Fox>& newFoxes, int gridWidth, int gridHeight) const
 {
 	// L'enfant apparait sur la même case que les parents
-	// newFoxes.emplace_back(gridWidth, gridHeight, false, x, y);
+	newFoxes.emplace_back(gridWidth, gridHeight, false, x, y);
 
 	// L'enfant apparait sur une case aléatoire
-	newFoxes.emplace_back(gridWidth, gridHeight, false);
-}
-
-bool Fox::isDeadStatus() const
-{
-	return isDead;
+	// newFoxes.emplace_back(gridWidth, gridHeight, false);
 }
