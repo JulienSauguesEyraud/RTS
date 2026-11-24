@@ -27,7 +27,9 @@ protected:
 public:
 	bool canReproduce;
 
-	Creature(int gridWidth, int gridHeight, bool initialCreature = true, int initialX = -1, int initialY = -1);
+	Creature(int gridWidth, int gridHeight,
+		int minimumAgeForReproduction, int daysToReproduce, int ageToDie,
+		bool initialCreature = true, int initialX = -1, int initialY = -1);
 	virtual ~Creature();
 	int getX() const;
 	int getY() const;

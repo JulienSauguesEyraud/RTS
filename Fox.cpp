@@ -10,12 +10,13 @@ void Fox::grow(int deltaT, int currentTime)
 	}
 }
 
-Fox::Fox(int gridWidth, int gridHeight, bool isDead, int x, int y)
+Fox::Fox(int gridWidth, int gridHeight, bool initialCreature, int x, int y)
+	: Creature(gridWidth, gridHeight,
+		300,
+		365,
+		QRandomGenerator::global()->bounded(2920, 3651),
+		initialCreature, x, y)
 {
-	daysToReproduce = 365;
-	minimumAgeForReproduction = 300;
-	ageToDie = QRandomGenerator::global()->bounded(2920, 3650);
-	Creature::Creature(gridWidth, gridHeight, isDead, x, y);
 }
 
 bool Fox::isHungry() const
@@ -35,8 +36,8 @@ int Fox::getSatiete() const
 
 void Fox::reproduce(std::vector<Fox>& newFoxes, int gridWidth, int gridHeight) const
 {
-	int nbChildren = QRandomGenerator::global()->bounded(4, 6);
-	for (int i = 0; i < nbChildren; ++i) // Chaque couple de renards peut avoir jusqu'à 2 enfants
+	int nbChildren = QRandomGenerator::global()->bounded(4, 7);
+	for (int i = 0; i < nbChildren; ++i)
 	{
 		// L'enfant apparait sur la même case que les parents
 		newFoxes.emplace_back(gridWidth, gridHeight, false, x, y);

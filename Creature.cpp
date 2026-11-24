@@ -1,6 +1,11 @@
 #include "Creature.h"
 
-Creature::Creature(int gridWidth, int gridHeight, bool initialCreature, int initialX, int initialY)
+Creature::Creature(int gridWidth, int gridHeight,
+	int minimumAgeForReproduction, int daysToReproduce, int ageToDie,
+	bool initialCreature, int initialX, int initialY)
+	: minimumAgeForReproduction(minimumAgeForReproduction),
+	  daysToReproduce(daysToReproduce),
+	  ageToDie(ageToDie)
 {
 	if (initialX >= 0 && initialY >= 0)
 	{
@@ -14,7 +19,7 @@ Creature::Creature(int gridWidth, int gridHeight, bool initialCreature, int init
 	}
 	if (initialCreature)
 	{
-		age = minimumAgeForReproduction;
+		age = this->minimumAgeForReproduction;
 		canReproduce = true;
 	}
 	else
@@ -22,7 +27,7 @@ Creature::Creature(int gridWidth, int gridHeight, bool initialCreature, int init
 		age = 0;
 		canReproduce = false;
 	}
-	lastReproduction = daysToReproduce;
+	lastReproduction = -this->daysToReproduce;
 	isMale = QRandomGenerator::global()->bounded(2) == 0;
 }
 
@@ -84,6 +89,11 @@ void Creature::grow(int deltaT, int currentTime)
 		}
 	}
 	age += deltaT;
+
+	if (age >= ageToDie)
+	{
+		isDead = true;
+	}
 }
 
 bool Creature::IsChidren() const

@@ -55,7 +55,7 @@ void Map::start()
 {
     QThread *thread = QThread::create([this]()
     {
-        std::ofstream file("evolution_poppulations.csv");
+        std::ofstream file("evolution_populations.csv");
         file << "Temps;Proies;Predateurs\n";
 
         while (true)
@@ -63,15 +63,16 @@ void Map::start()
             QThread::msleep(500);
 
             updateRabbits();
-			updateFoxes();
-            FoxesEatRabbits();
+            updateFoxes();
+            RemoveDeadRabbits();
             RemoveDeadFoxes();
+            FoxesEatRabbits();
             CheckFightOrReproduceFoxes();
             reproduceRabbits();
 
             currentTime += deltaT;
 
-            file << currentTime << ";" << rabbits.size() <<  ";" << foxes.size() << "\n";
+            file << currentTime << ";" << rabbits.size() << ";" << foxes.size() << "\n";
             file.flush();
 
             QMetaObject::invokeMethod(this, [this]() {
@@ -624,7 +625,7 @@ void Map::FightFoxes(int i, int j, std::vector<bool>& dead)
             }
             else
             {
-                if (QRandomGenerator::global()->bounded(2) == 0) // les 2 prédateurs très affamés ont 50% de chance de tuer l'autre
+                if (QRandomGenerator::global()->bounded(2) == 0) // les 2 prédateurs un peu affamés ont 50% de chance de tuer l'autre
                 {
                     dead[i] = true;
                 }
@@ -726,7 +727,7 @@ void Map::FightFoxes(int i, int j, std::vector<bool>& dead)
             }
             else
             {
-                if (QRandomGenerator::global()->bounded(3) == 0) // mâle très affamé a 66% de chance de tuer la femelle très affamé
+                if (QRandomGenerator::global()->bounded(3) == 0) // mâle un peu affamé a 66% de chance de tuer la femelle un peu affamée
                 {
                     dead[j] = true;
                 }
@@ -783,4 +784,17 @@ void Map::RemoveDeadFoxes()
         }
     }
     foxes = std::move(survivors);
+}
+
+void Map::RemoveDeadRabbits()
+{
+    std::vector<Rabbit> survivors;
+    for (size_t i = 0; i < rabbits.size(); ++i)
+    {
+        if (!rabbits[i].isDeadStatus())
+        {
+            survivors.push_back(rabbits[i]);
+        }
+    }
+    rabbits = std::move(survivors);
 }

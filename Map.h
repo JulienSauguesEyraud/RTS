@@ -34,6 +34,7 @@ private:
     void FightFoxes(int i, int j, std::vector<bool>& dead);
     void FoxesEatRabbits();
 	void RemoveDeadFoxes();
+	void RemoveDeadRabbits();
 
 public:
     Map(QWidget *parent = nullptr);
