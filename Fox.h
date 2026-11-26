@@ -11,8 +11,6 @@
 
 class Fox : public Creature
 {
-protected:
-	void grow(int deltaT, int currentTime) override;
 public:
 	Fox(int gridWidth, int gridHeight, bool initialCreature = true, int x = -1, int y = -1);
 	bool isHungry() const;

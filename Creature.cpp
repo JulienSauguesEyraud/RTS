@@ -94,6 +94,12 @@ void Creature::grow(int deltaT, int currentTime)
 	{
 		isDead = true;
 	}
+
+	satiete--;
+	if (satiete <= 0)
+	{
+		isDead = true;
+	}
 }
 
 bool Creature::isChidren() const

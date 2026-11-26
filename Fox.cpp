@@ -1,15 +1,5 @@
 #include "Fox.h"
 
-void Fox::grow(int deltaT, int currentTime)
-{
-	Creature::grow(deltaT, currentTime);
-	satiete--;
-	if (satiete <= 0)
-	{
-		isDead = true;
-	}
-}
-
 Fox::Fox(int gridWidth, int gridHeight, bool initialCreature, int x, int y)
 	: Creature(gridWidth, gridHeight,
 		300,
