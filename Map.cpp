@@ -56,11 +56,11 @@ void Map::start()
     QThread *thread = QThread::create([this]()
     {
         std::ofstream file("evolution_populations.csv");
-        file << "Temps;Proies;Predateurs\n";
+        file << "Temps;Lapins;Renards\n";
 
         while (true)
         {
-            QThread::msleep(500);
+            QThread::msleep(100);
 
             updateRabbits();
             updateFoxes();
