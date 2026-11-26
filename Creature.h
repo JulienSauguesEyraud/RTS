@@ -35,7 +35,7 @@ public:
 	int getY() const;
 	bool getIsMale() const;
 	virtual void update(int gridWidth, int gridHeight, int deltaT, int currentTime);
-	bool IsChidren() const;
+	bool isChidren() const;
 	void setLastReproduction(int currentTime);
 	void resetSatiete();
 	bool isDeadStatus() const;

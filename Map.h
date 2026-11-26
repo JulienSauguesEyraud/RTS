@@ -7,6 +7,7 @@
 #include <memory>
 #include "Rabbit.h"
 #include "Fox.h"
+#include "Vegetation.h"
 
 class Map: public QWidget
 {
@@ -17,24 +18,29 @@ private:
     const int N = 20;
     const int H0Rabbit = 200;
 	const int H0Fox = 20;
+	const int H0Vegetation = 50;
 	const int deltaT = 1;
     int currentTime = 0;
 
     std::vector<Rabbit> rabbits;
     std::vector<Fox> foxes;
+	std::vector<Vegetation> vegetations;
 
-    void DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const;
-    void DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHeight);
-    void DrawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeight);
+    void drawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const;
+    void drawRabbits(QPainter& painter, const int& cellWidth, const int& cellHeight);
+    void drawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeight);
+	void drawVegetation(QPainter& painter, const int& cellWidth, const int& cellHeight);
     void updateRabbits();
 	void updateFoxes();
+	void updateVegetation();
 	void reproduceRabbits();
-	void CheckFightOrReproduceFoxes();
+	void rabbitsEatVegetation();
+	void checkFightOrReproduceFoxes();
 	void reproduceFoxes(int i, int j, std::vector<Fox>& newFoxes, std::vector<bool>& reproduced);
-    void FightFoxes(int i, int j, std::vector<bool>& dead);
-    void FoxesEatRabbits();
-	void RemoveDeadFoxes();
-	void RemoveDeadRabbits();
+    void fightFoxes(int i, int j, std::vector<bool>& dead);
+    void foxesEatRabbits();
+	void removeDeadFoxes();
+	void removeDeadRabbits();
 
 public:
     Map(QWidget *parent = nullptr);

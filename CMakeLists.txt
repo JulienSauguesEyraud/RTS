@@ -22,6 +22,8 @@ set(PROJECT_SOURCES
     Rabbit.cpp
     Fox.h
     Fox.cpp
+    Vegetation.h
+    Vegetation.cpp
     resources.qrc
 )
 

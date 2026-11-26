@@ -18,6 +18,32 @@ Map::Map(QWidget *parent):
     {
         foxes.emplace_back(N, N);
     }
+	for (int i = 0; i < H0Vegetation; ++i)
+	{
+        int nbTriesMax = 1000;
+        int nbTries = 0;
+        int x = QRandomGenerator::global()->bounded(N);
+        int y = QRandomGenerator::global()->bounded(N);
+        std::vector<int> occupiedXPositions;
+        std::vector<int> occupiedYPositions;
+        for (const auto& vegetation : vegetations)
+        {
+            occupiedXPositions.push_back(vegetation.getX());
+            occupiedYPositions.push_back(vegetation.getY());
+        }
+        while (std::find(occupiedXPositions.begin(), occupiedXPositions.end(), x) != occupiedXPositions.end()
+            && std::find(occupiedYPositions.begin(), occupiedYPositions.end(), y) != occupiedYPositions.end()
+            && nbTries < nbTriesMax)
+        {
+            x = QRandomGenerator::global()->bounded(N);
+            y = QRandomGenerator::global()->bounded(N);
+            nbTries++;
+        }
+		if (nbTries < nbTriesMax)
+		{
+			vegetations.emplace_back(vegetations, N, N, x, y);
+		}
+	}
 }
 
 Map::~Map()
@@ -41,13 +67,14 @@ void Map::paintEvent(QPaintEvent *event)
     const int cellWidth = width() / N;
     const int cellHeight = height() / N;
 
-	DrawGrid(painter, cellWidth, cellHeight);
-	DrawRabbits(painter, cellWidth, cellHeight);
-	DrawFoxes(painter, cellWidth, cellHeight);
+	drawGrid(painter, cellWidth, cellHeight);
+	drawVegetation(painter, cellWidth, cellHeight);
+	drawRabbits(painter, cellWidth, cellHeight);
+	drawFoxes(painter, cellWidth, cellHeight);
 
 	painter.setFont(QFont("Arial", 12));
-	painter.drawText(0, 12, QString("Proies: " + QString::number(rabbits.size())));
-    painter.drawText(0, 36, QString("Prédateurs: " + QString::number(foxes.size())));
+	painter.drawText(0, 12, QString("Lapins: " + QString::number(rabbits.size())));
+    painter.drawText(0, 36, QString("Renards: " + QString::number(foxes.size())));
 	painter.drawText(0, 54, QString("Jour: " + QString::number(currentTime)));
 }
 
@@ -64,10 +91,12 @@ void Map::start()
 
             updateRabbits();
             updateFoxes();
-            RemoveDeadRabbits();
-            RemoveDeadFoxes();
-            FoxesEatRabbits();
-            CheckFightOrReproduceFoxes();
+			updateVegetation();
+            removeDeadRabbits();
+            removeDeadFoxes();
+            foxesEatRabbits();
+            checkFightOrReproduceFoxes();
+			rabbitsEatVegetation();
             reproduceRabbits();
 
             currentTime += deltaT;
@@ -84,7 +113,7 @@ void Map::start()
     thread->start();
 }
 
-void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const
+void Map::drawGrid(QPainter& painter, const int& cellWidth, const int& cellHeight) const
 {
     for (int row = 0; row < N; ++row)
     {
@@ -100,12 +129,12 @@ void Map::DrawGrid(QPainter& painter, const int& cellWidth, const int& cellHeigh
     }
 }
 
-void Map::DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHeight)
+void Map::drawRabbits(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
     for (const auto& rabbit : rabbits) {
         if (showImages && !rabbitImage.isNull())
         {
-            if (rabbit.IsChidren())
+            if (rabbit.isChidren())
             {
                 painter.drawImage(
                     QRect(rabbit.getX() * cellWidth + cellWidth / 3, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 4, cellHeight / 2),
@@ -124,7 +153,7 @@ void Map::DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHe
         {
             if (rabbit.getIsMale())
             {
-                if (rabbit.IsChidren())
+                if (rabbit.isChidren())
                 {
                     painter.setBrush(Qt::blue);
                     painter.drawEllipse(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
@@ -142,7 +171,7 @@ void Map::DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHe
             }
             else
             {
-                if (rabbit.IsChidren())
+                if (rabbit.isChidren())
                 {
                     painter.setBrush(Qt::cyan);
                     painter.drawEllipse(rabbit.getX() * cellWidth + cellWidth / 4, rabbit.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
@@ -162,12 +191,12 @@ void Map::DrawRabbits(QPainter& painter, const int& cellWidth, const int& cellHe
     }
 }
 
-void Map::DrawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeight)
+void Map::drawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeight)
 {
     for (const auto& fox : foxes) {
         if (showImages && !foxImage.isNull())
         {
-            if (fox.IsChidren())
+            if (fox.isChidren())
             {
                 painter.drawImage(
                     QRect(fox.getX() * cellWidth + cellWidth / 3, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 3, cellHeight / 2),
@@ -186,12 +215,12 @@ void Map::DrawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeig
         {
             if (fox.getIsMale())
             {
-                if (fox.IsChidren() && !fox.isHungry())
+                if (fox.isChidren() && !fox.isHungry())
                 {
                     painter.setBrush(Qt::red);
                     painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
                 }
-                else if (fox.IsChidren() && fox.isHungry())
+                else if (fox.isChidren() && fox.isHungry())
                 {
                     painter.setBrush(Qt::darkRed);
                     painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
@@ -219,12 +248,12 @@ void Map::DrawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeig
             }
             else
             {
-                if (fox.IsChidren() && !fox.isHungry())
+                if (fox.isChidren() && !fox.isHungry())
                 {
                     painter.setBrush(Qt::magenta);
                     painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
                 }
-                else if (fox.IsChidren() && fox.isHungry())
+                else if (fox.isChidren() && fox.isHungry())
                 {
                     painter.setBrush(Qt::darkMagenta);
                     painter.drawEllipse(fox.getX() * cellWidth + cellWidth / 4, fox.getY() * cellHeight + cellHeight / 4, cellWidth / 2, cellHeight / 2);
@@ -254,6 +283,16 @@ void Map::DrawFoxes(QPainter& painter, const int& cellWidth, const int& cellHeig
     }
 }
 
+void Map::drawVegetation(QPainter& painter, const int& cellWidth, const int& cellHeight)
+{
+    for (const auto& vegetation : vegetations)
+    {
+        painter.setBrush(Qt::darkGreen);
+		int vegetationHeight = static_cast<int>(cellHeight * vegetation.getPercentageAmount());
+		painter.drawRect(vegetation.getX() * cellWidth, vegetation.getY() * cellHeight + (cellHeight - vegetationHeight), cellWidth, vegetationHeight);
+    }
+}
+
 void Map::updateRabbits()
 {
     for (auto& rabbit : rabbits) {
@@ -266,6 +305,13 @@ void Map::updateFoxes()
     for (auto& fox : foxes) {
         fox.update(N, N, deltaT, currentTime);
     }
+}
+
+void Map::updateVegetation()
+{
+	for (auto& vegetation : vegetations) {
+		vegetation.update(vegetations, N, N);
+	}
 }
 
 void Map::reproduceRabbits()
@@ -301,7 +347,25 @@ void Map::reproduceRabbits()
 	}
 }
 
-void Map::CheckFightOrReproduceFoxes()
+void Map::rabbitsEatVegetation()
+{
+	for (auto& rabbit : rabbits)
+	{
+		for (auto& vegetation : vegetations)
+		{
+			if (rabbit.getX() == vegetation.getX() && rabbit.getY() == vegetation.getY())
+			{
+				if (vegetation.canBeEaten(rabbit.getAmoutVegetationToEat()))
+				{
+					vegetation.reduceVegetation(rabbit.getAmoutVegetationToEat());
+					rabbit.resetSatiete();
+				}
+			}
+		}
+	}
+}
+
+void Map::checkFightOrReproduceFoxes()
 {
     std::vector<Fox> newFoxes;
     std::vector<bool> dead(foxes.size(), false);
@@ -311,13 +375,13 @@ void Map::CheckFightOrReproduceFoxes()
     {
         if (dead[i]) continue;
         if (reproduced[i]) continue;
-        if (foxes[i].IsChidren()) continue;
+        if (foxes[i].isChidren()) continue;
 
         for (int j = i + 1; j < foxes.size(); ++j)
         {
             if (dead[j]) continue;
             if (reproduced[j]) continue;
-            if (foxes[j].IsChidren()) continue;
+            if (foxes[j].isChidren()) continue;
 
             if (foxes[i].getX() == foxes[j].getX() && foxes[i].getY() == foxes[j].getY())
             {
@@ -325,10 +389,9 @@ void Map::CheckFightOrReproduceFoxes()
                 {
                     if (foxes[j].canReproduce && foxes[i].canReproduce)
                     {
-                        // 
                         if (QRandomGenerator::global()->bounded((foxes[i].getSatiete() + foxes[j].getSatiete()) / 2 + std::max(foxes[i].getSatiete(), foxes[j].getSatiete())) == 0)
                         {
-                            FightFoxes(i, j, dead);
+                            fightFoxes(i, j, dead);
                         }
                         else
                         {
@@ -338,12 +401,12 @@ void Map::CheckFightOrReproduceFoxes()
                     }
                     else
                     {
-                        FightFoxes(i, j, dead);
+                        fightFoxes(i, j, dead);
                     }
                 }
                 else
                 {
-                    FightFoxes(i, j, dead);
+                    fightFoxes(i, j, dead);
                 }
                 if (dead[i]) break;
                 if (reproduced[i]) break;
@@ -378,7 +441,7 @@ void Map::reproduceFoxes(int i, int j, std::vector<Fox>& newFoxes, std::vector<b
     reproduced[j] = true;
 }
 
-void Map::FightFoxes(int i, int j, std::vector<bool>& dead)
+void Map::fightFoxes(int i, int j, std::vector<bool>& dead)
 {
     // les prédateurs mangent le vaincu uniquement quand ils sont très affamés, sinon ils se battent juste et le vaincu meurt
     if (!foxes[i].isHungry() && !foxes[j].isHungry())
@@ -740,7 +803,7 @@ void Map::FightFoxes(int i, int j, std::vector<bool>& dead)
     }
 }
 
-void Map::FoxesEatRabbits()
+void Map::foxesEatRabbits()
 {
     std::vector<bool> dead(rabbits.size(), false);
 
@@ -773,7 +836,7 @@ void Map::FoxesEatRabbits()
     rabbits = std::move(survivors);
 }
 
-void Map::RemoveDeadFoxes()
+void Map::removeDeadFoxes()
 {
     std::vector<Fox> survivors;
     for (size_t i = 0; i < foxes.size(); ++i)
@@ -786,7 +849,7 @@ void Map::RemoveDeadFoxes()
     foxes = std::move(survivors);
 }
 
-void Map::RemoveDeadRabbits()
+void Map::removeDeadRabbits()
 {
     std::vector<Rabbit> survivors;
     for (size_t i = 0; i < rabbits.size(); ++i)

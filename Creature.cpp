@@ -96,7 +96,7 @@ void Creature::grow(int deltaT, int currentTime)
 	}
 }
 
-bool Creature::IsChidren() const
+bool Creature::isChidren() const
 {
 	return age < minimumAgeForReproduction;
 }
